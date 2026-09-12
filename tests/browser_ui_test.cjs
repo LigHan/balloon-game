@@ -72,6 +72,32 @@ async function run() {
       await page.screenshot({ path: path.join(artifacts, `${design}-${width}.png`), fullPage: true, animations: 'disabled' });
     }
   }
+  // The landscape must reach every bottom edge, including wide monitors and tall viewports.
+  await page.locator('[data-design-choice="expanded"]').click();
+  for (const [width, height] of [[375, 812], [1440, 900], [1920, 1080], [2560, 1440], [3440, 1440], [1080, 2400]]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    const landscape = await page.evaluate(() => {
+      const image = document.querySelector('.world-land img'), r = image.getBoundingClientRect();
+      const scene = document.getElementById('world-scene').getBoundingClientRect();
+      // The root may reserve a native scrollbar gutter outside the page's painted area.
+      return { ratio: r.width / r.height, expected: Number(image.getAttribute('width')) / Number(image.getAttribute('height')), covers: r.left <= scene.left && r.right >= scene.right && r.bottom >= innerHeight, pageFills: document.body.getBoundingClientRect().height >= innerHeight, width: Math.floor(scene.right) };
+    });
+    check(Math.abs(landscape.ratio - landscape.expected) < .001, `Village retains its proportions in ${width}×${height}`);
+    check(landscape.covers && landscape.pageFills, `Landscape reaches the viewport edges in ${width}×${height}`);
+    const screenshot = await page.screenshot({ path: path.join(artifacts, `landscape-${width}x${height}.png`), animations: 'disabled' });
+    const bottomPixels = await page.evaluate(async ({ png, width }) => {
+      const image = new Image(); image.src = 'data:image/png;base64,' + png; await image.decode();
+      const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+      const village = document.querySelector('.world-land img'), r = village.getBoundingClientRect();
+      const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
+      const sourceContext = source.getContext('2d'); sourceContext.drawImage(village, r.x, r.y, r.width, r.height);
+      return [2, Math.floor(width / 2), width - 3].map(x => ({ actual: Array.from(ctx.getImageData(x, image.height - 3, 1, 1).data), expected: Array.from(sourceContext.getImageData(x, image.height - 3, 1, 1).data) }));
+    }, { png: screenshot.toString('base64'), width: landscape.width });
+    check(bottomPixels.every(({ actual, expected }) => expected[3] === 255 && actual.every((value, i) => Math.abs(value - expected[i]) <= 3)), `Painted ground fills the bottom corners and center in ${width}×${height}: ${JSON.stringify(bottomPixels)}`);
+  }
+  await page.locator('[data-design-choice="classic"]').click();
   await page.reload();
   await page.waitForSelector('.bet-card');
   check(await page.locator('body').getAttribute('data-design') === 'classic', 'Design preference survives reload');

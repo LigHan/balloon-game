@@ -1,6 +1,6 @@
 /* Design 2: one illustrated world behind the entire page. */
 .world-scene, .scene-outro, .sky-page-caption, #flight-design-slot { display: none; }
-body[data-design='expanded'] { display: flow-root; position: relative; isolation: isolate; color: #244963; background: #c3e9f6; }
+body[data-design='expanded'] { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; position: relative; isolation: isolate; color: #244963; background: #c3e9f6; }
 body[data-design='expanded'] .world-scene { display: block; position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; --flight-travel: 0px; background: linear-gradient(180deg, #a7d8f3 0%, #c3e9f6 48%, #e5f3db 100%); }
 .world-scene:before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 22% 10%, #ffffffb8, transparent 58%); }
 .world-sun { position: absolute; width: 150px; height: 150px; border-radius: 50%; top: 6%; right: 14%; background: #fff5cf; box-shadow: 0 0 0 35px #fff8df20, 0 0 0 85px #fff9e51c, 0 0 100px 30px #fffae76b; }
@@ -11,16 +11,18 @@ body[data-design='expanded'] .world-scene { display: block; position: absolute; 
 .world-cloud { position: absolute; width: var(--cloud-size, 430px); left: var(--cloud-x, 0); top: var(--cloud-y, 50%); animation: world-drift var(--cloud-time, 48s) ease-in-out infinite alternate; filter: drop-shadow(0 12px 24px #8fbed313); }
 .cloud-layer.far .world-cloud { filter: blur(1px); }
 .world-land { position: absolute; width: max(100%, 1100px); height: auto; aspect-ratio: 1800 / 440; left: 50%; bottom: -12px; transform: translate(-50%, calc(var(--flight-travel) * 1.12)); will-change: transform; }
-.world-land img { display: block; width: 100%; }
+/* Override the HTML height so the SVG scales with its container without empty bands. */
+.world-land img { display: block; width: 100%; height: auto; }
 body[data-theme='red'][data-design='expanded'] .world-scene { background: linear-gradient(180deg, #edc7c4, #f8e0c9 56%, #e9eecb); }
 body[data-theme='red'][data-design='expanded'] .world-sun { background: #fff1c6; }
 
-body[data-design='expanded'] .header { position: relative; z-index: 5; margin: 18px auto 0; min-height: 76px; width: calc(100% - 64px); max-width: 1460px; padding: 0 24px; border: 1px solid #ffffffb5; border-radius: 20px; background: #ffffffe0; backdrop-filter: blur(18px); box-shadow: 0 8px 35px #3d779d0a; }
+body[data-design='expanded'] .header { position: relative; z-index: 5; flex-shrink: 0; margin: 18px auto 0; min-height: 76px; width: calc(100% - 64px); max-width: 1460px; padding: 0 24px; border: 1px solid #ffffffb5; border-radius: 20px; background: #ffffffe0; backdrop-filter: blur(18px); box-shadow: 0 8px 35px #3d779d0a; }
 body[data-design='expanded'] .header-nav .nav-current:after { bottom: 10px; height: 3px; border-radius: 3px; }
 body[data-design='expanded'] .header-nav a, body[data-design='expanded'] .header-nav button { min-height: 75px; color: #43667c; font-size: 14px; }
 body[data-design='expanded'] .balance { background: #fff6d3; }
 body[data-design='expanded'] .avatar { background: #e8f2f7; color: #54798d; }
-body[data-design='expanded'] .shell { padding-top: 36px; }
+body[data-design='expanded'] .shell { display: flex; flex-direction: column; flex: 1; width: 100%; margin: 0 auto; padding-top: 36px; }
+body[data-design='expanded'] .shell > * { flex-shrink: 0; }
 body[data-design='expanded'] .page-top { margin-bottom: 24px; }
 body[data-design='expanded'] .page-top .eyebrow { color: #60899c; }
 body[data-design='expanded'] .page-top h1 { font-size: clamp(35px, 4.1vw, 58px); font-weight: 800; letter-spacing: -2px; color: #24526f; }
@@ -66,7 +68,7 @@ body[data-design='expanded'] .leaderboard-preview .rank-row.me { background: #ff
 body[data-design='expanded'] .history-chip { background: #e5f4ee; border-color: #d3e9e2; }
 body[data-design='expanded'] .history-chip.loss { background: #fbede2; border-color: #f1e0d1; }
 body[data-design='expanded'] .empty-state { color: #8ba5b4; }
-body[data-design='expanded'] .scene-outro { display: flex; height: 190px; align-items: flex-start; justify-content: center; padding-top: 45px; }
+body[data-design='expanded'] .scene-outro { display: flex; height: 190px; margin-top: auto; align-items: flex-start; justify-content: center; padding-top: 45px; }
 .scene-outro span { padding: 12px 22px; border: 1px solid #ffffffab; background: #ffffffe0; border-radius: 99px; color: #659387; font-size: 13px; box-shadow: 0 5px 30px #55837609; }
 body[data-design='expanded'] .footer { padding: 16px 20px; margin-bottom: 12px; border-radius: 14px; background: #f6fff1c9; color: #66897a; backdrop-filter: blur(12px); }
 
