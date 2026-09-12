@@ -101,7 +101,7 @@ public final class Server {
         if(path.equals("/"))path="/index.html";if(path.equals("/admin"))path="/admin.html";if(path.equals("/presentation"))path="/presentation.html";
         Path file=web.resolve(path.substring(1)).normalize();
         if(!file.startsWith(web)||!Files.isRegularFile(file)||!file.toRealPath().startsWith(web.toRealPath())){send(x,404,map("error","Страница не найдена"));return;}
-        String name=file.getFileName().toString();String type=name.endsWith(".html")?"text/html; charset=utf-8":name.endsWith(".css")?"text/css; charset=utf-8":name.endsWith(".js")?"text/javascript; charset=utf-8":name.endsWith(".png")?"image/png":name.endsWith(".svg")?"image/svg+xml":"application/octet-stream";
+        String name=file.getFileName().toString();String type=name.endsWith(".html")?"text/html; charset=utf-8":name.endsWith(".css")?"text/css; charset=utf-8":name.endsWith(".js")?"text/javascript; charset=utf-8":name.endsWith(".png")?"image/png":name.endsWith(".svg")?"image/svg+xml":name.endsWith(".woff2")?"font/woff2":"application/octet-stream";
         x.getResponseHeaders().set("Content-Type",type);x.getResponseHeaders().set("Cache-Control","no-cache");
         if(x.getRequestMethod().equals("HEAD")){x.sendResponseHeaders(200,-1);return;}
         x.sendResponseHeaders(200,Files.size(file));Files.copy(file,x.getResponseBody());

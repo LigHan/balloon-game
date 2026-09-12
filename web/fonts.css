@@ -1,1 +1,8 @@
-/* System fonts keep the game fully offline and portable. */
+/* Roboto Flex is distributed under SIL OFL; see assets/ROBOTO-FLEX-LICENSE.txt. */
+@font-face {
+  font-family: "Roboto Flex";
+  src: url("/assets/roboto-flex.woff2") format("woff2");
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}

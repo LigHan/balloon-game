@@ -60,7 +60,7 @@ function buildBets() {
   betSignature = signature;
   $('bet-grid').innerHTML = cfg.stakes.map((stake, tier) => {
     const unavailable = stake > state.player.balance && !flight;
-    return `<button class="bet-card${tier === selected ? ' selected' : ''}" data-tier="${tier}" aria-pressed="${tier === selected}" aria-disabled="${!!flight || unavailable || busy}" aria-label="Ставка ${stake} бонусов, ${tier === 0 ? 'без бустера' : 'бустер ×' + cfg.boosters[tier]}"><span class="puzzle" aria-hidden="true">🧩</span><strong>${money(stake)}</strong><small>бонусов</small><span class="tier">${tier === 0 ? 'Без бустера' : '×' + cfg.boosters[tier]}</span></button>`;
+    return `<button class="bet-card${tier === selected ? ' selected' : ''}" data-tier="${tier}" aria-pressed="${tier === selected}" aria-disabled="${!!flight || unavailable || busy}" aria-label="Ставка ${stake} бонусов, ${tier === 0 ? 'без бустера' : 'бустер ×' + cfg.boosters[tier]}"><span class="puzzle" aria-hidden="true">🧩</span><strong>${money(stake)}</strong><small>бонусов</small><span class="tier">×${cfg.boosters[tier]}</span></button>`;
   }).join('');
   $('bet-grid').querySelectorAll('button').forEach((button) => button.addEventListener('click', () => {
     if (activeRound() || busy) return;
@@ -241,6 +241,8 @@ $('cashout').addEventListener('click', () => act(async () => { if (!activeRound(
 document.querySelectorAll('[data-theme-choice]').forEach((button) => button.addEventListener('click', () => { if (activeRound() || busy) return; theme = button.dataset.themeChoice; localStorage.setItem('balloon.theme', theme); atmosphere(); sound(); render(); }));
 $('topup').addEventListener('click', () => act(async () => { await api('/api/topup', {}); toast('Демобаланс пополнен на 1 000 бонусов'); }));
 $('rules-open').addEventListener('click', showRules);
+$('nav-rules').addEventListener('click', showRules);
+$('nav-leaderboard').addEventListener('click', () => openDialog('leaderboard-dialog'));
 $('collection-open').addEventListener('click', () => openDialog('collection-dialog'));
 $('leaderboard-open').addEventListener('click', () => openDialog('leaderboard-dialog'));
 $('fair-open').addEventListener('click', () => showFair());
