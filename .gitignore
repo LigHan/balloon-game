@@ -1,0 +1,9 @@
+build/
+data/*
+!data/.gitkeep
+.tools/
+*.log
+.DS_Store
+test-results/
+__pycache__/
+*.pyc

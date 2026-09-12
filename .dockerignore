@@ -1,0 +1,8 @@
+build
+data
+.git
+.tools
+tests
+docs
+*.log
+.DS_Store

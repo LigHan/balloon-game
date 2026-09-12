@@ -1,0 +1,28 @@
+{
+  "game_id": "balloon-2026",
+  "game_name": "Воздушный шар",
+  "game_type": "bonus_crash",
+  "is_active": true,
+  "points_per_line": 10,
+  "points_cashout_bonus": 25,
+  "points_xN_bonus": [0, 30, 50, 80],
+  "stakes": [10, 25, 50, 100],
+  "boosters": [1, 2, 3, 4],
+  "album_bonus": 200,
+  "green": {
+    "levels": 9,
+    "alpha": 1.15,
+    "min_crash_multiplier": 1.0,
+    "max_multiplier": 12,
+    "multiplier_growth_rate": 0.11,
+    "loot_weights": [6, 20, 25, 20, 12, 8, 5, 3, 1]
+  },
+  "red": {
+    "levels": 12,
+    "alpha": 1.35,
+    "min_crash_multiplier": 1.0,
+    "max_multiplier": 32,
+    "multiplier_growth_rate": 0.14,
+    "loot_weights": [2, 5, 10, 15, 20, 16, 12, 8, 5, 3, 2, 2]
+  }
+}
