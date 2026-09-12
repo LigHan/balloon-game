@@ -19,5 +19,7 @@ mkdir -p build
 "$BALLOON_JAVAC" --release 21 --add-modules jdk.httpserver -encoding UTF-8 -d build src/balloon/*.java tests/GameTest.java
 "$BALLOON_JAVA" --add-modules jdk.httpserver -cp build balloon.GameTest
 node --check web/app.js
+node --check web/request-id.js
 node --check web/admin.js
 node --check web/presentation.js
+node --test tests/request_id_test.cjs

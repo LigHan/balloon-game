@@ -9,7 +9,7 @@ COPY web web
 COPY config config
 RUN mkdir data && chown -R 10001:10001 /app
 USER 10001
-ENV HOST=0.0.0.0 PORT=8080
-EXPOSE 8080
+ENV HOST=0.0.0.0 PORT=443
+EXPOSE 443
 VOLUME ["/app/data"]
 CMD ["java", "--add-modules", "jdk.httpserver", "-cp", "build", "balloon.Server"]

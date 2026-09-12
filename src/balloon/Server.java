@@ -32,7 +32,7 @@ public final class Server {
         String seed=dev?System.getenv().getOrDefault("GAME_DEV_SEED",""):"";
         Game game=new Game(config,data,System::currentTimeMillis,dev,seed);
         Server app=new Server(game,root.resolve("web"),data);
-        String host=System.getenv().getOrDefault("HOST","127.0.0.1");int port=Integer.parseInt(System.getenv().getOrDefault("PORT","8080"));
+        String host=System.getenv().getOrDefault("HOST","127.0.0.1");int port=Integer.parseInt(System.getenv().getOrDefault("PORT","443"));
         HttpServer server=HttpServer.create(new InetSocketAddress(host,port),64);
         server.createContext("/",app::handle);server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         ScheduledExecutorService timer=Executors.newSingleThreadScheduledExecutor();

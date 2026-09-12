@@ -229,7 +229,7 @@ $('start').addEventListener('click', () => act(async () => {
   if (selected === null || activeRound()) return;
   let pending;
   try { pending = JSON.parse(sessionStorage.getItem('balloon.pendingStart')); } catch { /* Start a fresh request. */ }
-  if (!pending || pending.theme !== theme || pending.tier !== selected) pending = { theme, tier: selected, requestId: crypto.randomUUID() };
+  if (!pending || pending.theme !== theme || pending.tier !== selected) pending = { theme, tier: selected, requestId: createRequestId() };
   sessionStorage.setItem('balloon.pendingStart', JSON.stringify(pending));
   document.querySelector(`.bet-card[data-tier="${selected}"]`)?.classList.add('launching'); sound();
   await new Promise((resolve) => setTimeout(resolve, 350));
