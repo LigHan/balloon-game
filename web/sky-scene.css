@@ -1,0 +1,209 @@
+/* Design 2: one illustrated world behind the entire page. */
+.world-scene, .scene-outro, .sky-page-caption, #flight-design-slot { display: none; }
+body[data-design='expanded'] { display: flow-root; position: relative; isolation: isolate; color: #244963; background: #c3e9f6; }
+body[data-design='expanded'] .world-scene { display: block; position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; --flight-travel: 0px; background: linear-gradient(180deg, #a7d8f3 0%, #c3e9f6 48%, #e5f3db 100%); }
+.world-scene:before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 22% 10%, #ffffffb8, transparent 58%); }
+.world-sun { position: absolute; width: 150px; height: 150px; border-radius: 50%; top: 6%; right: 14%; background: #fff5cf; box-shadow: 0 0 0 35px #fff8df20, 0 0 0 85px #fff9e51c, 0 0 100px 30px #fffae76b; }
+.world-birds { position: absolute; width: 140px; top: 18%; left: 8%; fill: none; stroke: #678f9b; stroke-width: 2; opacity: .35; transform: translateY(calc(var(--flight-travel) * .2)); }
+.cloud-layer { position: absolute; left: 0; right: 0; top: -160vh; height: 300vh; will-change: transform; }
+.cloud-layer.far { transform: translateY(calc(var(--flight-travel) * .38)); opacity: .67; }
+.cloud-layer.near { transform: translateY(calc(var(--flight-travel) * .8)); opacity: .93; }
+.world-cloud { position: absolute; width: var(--cloud-size, 430px); left: var(--cloud-x, 0); top: var(--cloud-y, 50%); animation: world-drift var(--cloud-time, 48s) ease-in-out infinite alternate; filter: drop-shadow(0 12px 24px #8fbed313); }
+.cloud-layer.far .world-cloud { filter: blur(1px); }
+.world-land { position: absolute; width: max(100%, 1100px); height: auto; aspect-ratio: 1800 / 440; left: 50%; bottom: -12px; transform: translate(-50%, calc(var(--flight-travel) * 1.12)); will-change: transform; }
+.world-land img { display: block; width: 100%; }
+body[data-theme='red'][data-design='expanded'] .world-scene { background: linear-gradient(180deg, #edc7c4, #f8e0c9 56%, #e9eecb); }
+body[data-theme='red'][data-design='expanded'] .world-sun { background: #fff1c6; }
+
+body[data-design='expanded'] .header { position: relative; z-index: 5; margin: 18px auto 0; min-height: 76px; width: calc(100% - 64px); max-width: 1460px; padding: 0 24px; border: 1px solid #ffffffb5; border-radius: 20px; background: #ffffffe0; backdrop-filter: blur(18px); box-shadow: 0 8px 35px #3d779d0a; }
+body[data-design='expanded'] .header-nav .nav-current:after { bottom: 10px; height: 3px; border-radius: 3px; }
+body[data-design='expanded'] .header-nav a, body[data-design='expanded'] .header-nav button { min-height: 75px; color: #43667c; font-size: 14px; }
+body[data-design='expanded'] .balance { background: #fff6d3; }
+body[data-design='expanded'] .avatar { background: #e8f2f7; color: #54798d; }
+body[data-design='expanded'] .shell { padding-top: 36px; }
+body[data-design='expanded'] .page-top { margin-bottom: 24px; }
+body[data-design='expanded'] .page-top .eyebrow { color: #60899c; }
+body[data-design='expanded'] .page-top h1 { font-size: clamp(35px, 4.1vw, 58px); font-weight: 800; letter-spacing: -2px; color: #24526f; }
+body[data-design='expanded'] .game-badge { background: #fff7d5; color: #978034; border: 1px solid #fff9e7; padding: 9px 11px; }
+body[data-design='expanded'] .sky-page-caption { display: block; margin-top: 12px; font-size: 15px; color: #618ca1; line-height: 1.6; }
+body[data-design='expanded'] .quiet-button { border: 1px solid #ffffffa3; background: #ffffffa3; color: #57788c; backdrop-filter: blur(8px); border-radius: 12px; }
+body[data-design='expanded'] .view-settings { margin-bottom: 20px; }
+body[data-design='expanded'] .design-label { color: #6790a5; }
+body[data-design='expanded'] .design-switch { background: #dcecf5ab; border-color: #ffffffa1; backdrop-filter: blur(12px); }
+body[data-design='expanded'] .design-switch button { color: #7292a6; }
+body[data-design='expanded'] .design-switch button[aria-pressed='true'] { color: #355d76; background: #fffffff2; }
+body[data-design='expanded'] .demo-banner { color: #7192a3; background: #eff8fb96; border-color: #ffffff7a; }
+body[data-design='expanded'] .flight-panel { border: 1px solid #ffffffd9; background: #f3fbff47; box-shadow: 0 22px 60px #43769b12; border-radius: 27px; }
+body[data-design='expanded'] .flight-toolbar { background: #f7fcffb3; padding: 13px 20px; min-height: 71px; }
+body[data-design='expanded'] .theme-switch { background: #e7f1f5; }
+body[data-design='expanded'] .theme-choice { color: #486778; }
+body[data-design='expanded'] .flight-tag { color: #7e9cae; }
+body[data-design='expanded'] .flight-roster { background: #f6fbff91; border-top-color: #ffffff8c; }
+body[data-design='expanded'] .roster-label { color: #81a0b0; }
+body[data-design='expanded'] .live-rank-item { background: #eff7fa; color: #728e9e; }
+body[data-design='expanded'] .live-rank-item.me { background: #fff1b9; color: #968047; }
+body[data-design='expanded'] .sky, body[data-theme='red'][data-design='expanded'] .sky { background: transparent; }
+body[data-design='expanded'] .sky:after, body[data-design='expanded'] .sky-cloud { display: none; }
+body[data-design='expanded'] .sky-heading h2 { color: #396c88; }
+body[data-design='expanded'] .sky-heading p { color: #6c94a7; }
+body[data-design='expanded'] .route-label { background: #f4fbffc2; border-color: #fff; color: #6897ac; }
+body[data-design='expanded'] .level-lines { opacity: .7; }
+body[data-design='expanded'] .level-number { background: #effaffb8; color: #81a8b7; }
+body[data-design='expanded'] .bet-panel { background: #ffffffde; border: 1px solid #ffffffef; box-shadow: 0 18px 55px #4f80981c; }
+body[data-design='expanded'] .section-heading { color: #3a617b; }
+body[data-design='expanded'] .bet-card { background: #edf4f7; }
+body[data-design='expanded'] .bet-card.selected { background: #fff5cf; }
+body[data-design='expanded'] .flight-bottom { color: #7c9eae; background: #f6fcffba; border-top: 1px solid #ffffff7d; }
+body[data-design='expanded'] .flight-bottom .text-button { color: #6f93a8; }
+body[data-design='expanded'] .collection-teaser { background: linear-gradient(120deg, #3d8c82, #6ea690); box-shadow: 0 12px 30px #658f8112; border: 1px solid #ffffffc4; }
+body[data-design='expanded'] .collection-teaser:before { border-color: #ffffff38; box-shadow: 0 0 0 25px #ffffff0b, 0 0 0 50px #ffffff0a; }
+body[data-design='expanded'] .collection-teaser small, body[data-design='expanded'] .collection-teaser > button > span:last-child { color: #d6eddd; }
+body[data-design='expanded'] .collection-mark { color: #ffedaf; }
+body[data-design='expanded'] .leaderboard-panel, body[data-design='expanded'] .history-panel { border: 1px solid #ffffffd4; background: #ffffffd6; backdrop-filter: blur(15px); box-shadow: 0 12px 30px #51788b0b; }
+body[data-design='expanded'] .small-heading h2 { color: #416b80; }
+body[data-design='expanded'] .leaderboard-preview .rank-row { background: #edf4f7; }
+body[data-design='expanded'] .leaderboard-preview .rank-row.me { background: #fff4cf; }
+body[data-design='expanded'] .history-chip { background: #e5f4ee; border-color: #d3e9e2; }
+body[data-design='expanded'] .history-chip.loss { background: #fbede2; border-color: #f1e0d1; }
+body[data-design='expanded'] .empty-state { color: #8ba5b4; }
+body[data-design='expanded'] .scene-outro { display: flex; height: 190px; align-items: flex-start; justify-content: center; padding-top: 45px; }
+.scene-outro span { padding: 12px 22px; border: 1px solid #ffffffab; background: #ffffffe0; border-radius: 99px; color: #659387; font-size: 13px; box-shadow: 0 5px 30px #55837609; }
+body[data-design='expanded'] .footer { padding: 16px 20px; margin-bottom: 12px; border-radius: 14px; background: #f6fff1c9; color: #66897a; backdrop-filter: blur(12px); }
+
+/* A live flight becomes a viewport-sized cockpit. The scenery keeps moving. */
+html.has-flight { overflow: hidden; overscroll-behavior: none; }
+body.flight-view .world-scene { position: fixed; }
+body.flight-view .page-top, body.flight-view .view-settings, body.flight-view .demo-banner, body.flight-view .side-panel, body.flight-view .history-panel, body.flight-view .scene-outro, body.flight-view .footer { visibility: hidden; pointer-events: none; }
+body.flight-view .header { position: fixed; top: 10px; left: 24px; right: 24px; width: auto; max-width: none; margin: 0; min-height: 62px; height: 62px; border-radius: 16px; padding: 0 20px; z-index: 40; }
+body.flight-view .brand img { width: 132px; height: 56px; }
+body.flight-view .header-nav a, body.flight-view .header-nav button { min-height: 60px; }
+body.flight-view .header-nav .nav-current:after { bottom: 0; }
+body.flight-view .flight-panel { position: fixed; inset: 86px 24px 18px; z-index: 30; display: flex; flex-direction: column; background: #f4fbff24; border-radius: 24px; box-shadow: 0 20px 70px #40719316; animation: cockpit-enter .25s ease-out both; }
+body.flight-view .flight-toolbar { flex-shrink: 0; min-height: 58px; padding: 9px 17px; gap: 12px; }
+body.flight-view .flight-roster { flex-shrink: 0; height: 45px; }
+body.flight-view .flight-stage { flex: 1; min-height: 0; }
+body.flight-view .sky { height: 100%; }
+body.flight-view .flight-bottom { min-height: 43px; flex-shrink: 0; padding: 11px 18px; }
+body.flight-view .bet-dock { top: 16px; bottom: 16px; }
+body.flight-view .bet-panel { padding: 20px; }
+body.flight-view .bet-grid { margin-top: 15px; }
+body.flight-view .bet-card { padding-top: 10px; padding-bottom: 8px; }
+body.flight-view .booster-explanation { margin-top: 13px; min-height: 40px; }
+body.flight-view #flight-design-slot { display: block; margin-left: auto; }
+body.flight-view .design-switch { padding: 3px; }
+body.flight-view .design-switch button { padding: 7px 11px; font-size: 12px; }
+body.flight-view .connection:not([hidden]) { position: fixed; top: 78px; left: 50%; transform: translateX(-50%); z-index: 45; max-width: min(580px, calc(100vw - 30px)); }
+@keyframes world-drift { from { translate: -25px 0; } to { translate: 35px 0; } }
+@keyframes cockpit-enter { from { opacity: .5; } to { opacity: 1; } }
+
+@media (max-height: 800px) and (min-width: 901px) {
+  body.flight-view .bet-copy, body.flight-view .bet-grid { display: none; }
+  body.flight-view .bet-panel { padding: 23px; }
+  body.flight-view .sky.flying .balloon-track { width: 210px; height: 245px; }
+}
+@media (max-width: 1150px) {
+  body[data-design='expanded'] .header { width: calc(100% - 48px); padding: 0 18px; gap: 22px; }
+  body[data-design='expanded'] .header-nav { gap: 19px; }
+  body.flight-view .header { width: auto; }
+  body[data-design='expanded'] .page-top h1 { letter-spacing: -1.3px; }
+}
+@media (max-width: 900px) {
+  body[data-design='expanded'] .bet-dock { background: #f6fcffb5; border-top-color: #ffffffba; }
+  body[data-design='expanded'] .bet-panel { background: transparent; border: 0; box-shadow: none; }
+  body.flight-view .flight-stage { display: flex; flex-direction: column; }
+  body.flight-view .sky { height: auto; flex: 1; min-height: 0; }
+  body.flight-view .bet-dock { position: relative; top: auto; right: auto; bottom: auto; padding: 14px 19px; flex-shrink: 0; }
+  body.flight-view .bet-panel { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 0; }
+  body.flight-view .bet-copy, body.flight-view .bet-grid { display: none; }
+  body.flight-view .booster-explanation { margin: 0; min-height: 0; }
+  body.flight-view .bet-options { align-self: center; }
+  body.flight-view .bet-total { margin: 0; padding: 0; border: 0; }
+  body.flight-view .bet-action-buttons { margin-top: 10px; }
+  body.flight-view .button-caption { display: none; }
+  body.flight-view .cashout-notice { font-size: 11px; padding: 8px; margin-top: 8px; }
+  body.flight-view .sky.flying .balloon-track { width: 200px; height: 225px; }
+  body.flight-view .header-nav { display: none; }
+  body.flight-view .flight-tag { display: none; }
+}
+@media (max-width: 580px) {
+  body[data-design='expanded'] .header { width: calc(100% - 24px); min-height: 65px; margin-top: 12px; padding: 0 10px; gap: 9px; border-radius: 17px; }
+  body[data-design='expanded'] .brand img { width: 109px; height: 47px; }
+  body[data-design='expanded'] .shell { padding-top: 27px; }
+  body[data-design='expanded'] .page-top h1 { font-size: 32px; letter-spacing: -.9px; }
+  body[data-design='expanded'] .sky-page-caption { font-size: 12px; max-width: 235px; margin-top: 10px; }
+  body[data-design='expanded'] .page-top { margin-bottom: 19px; }
+  body[data-design='expanded'] .page-top .top-actions { margin-top: 5px; }
+  body[data-design='expanded'] .flight-panel { border-radius: 21px; }
+  body[data-design='expanded'] .flight-toolbar { padding: 11px 10px; }
+  body[data-design='expanded'] .scene-outro { height: 155px; padding-top: 32px; }
+  .scene-outro span { font-size: 11px; padding: 10px 15px; }
+  .world-sun { width: 90px; height: 90px; top: 11%; right: 7%; }
+  .world-birds { top: 5%; width: 100px; left: 3%; }
+  .cloud-layer { left: -170px; right: -170px; }
+  body[data-design='expanded'] .footer { padding: 15px; gap: 8px; font-size: 10px; }
+  body.flight-view .header { top: 8px; left: 10px; right: 10px; width: auto; margin: 0; min-height: 58px; height: 58px; }
+  body.flight-view .flight-panel { inset: 76px 10px 10px; border-radius: 19px; }
+  body.flight-view .flight-toolbar { min-height: 50px; padding: 7px 8px; gap: 5px; }
+  body.flight-view .theme-choice { padding: 8px 7px; font-size: 11px; }
+  body.flight-view .theme-choice > span:last-child { display: none; }
+  body.flight-view .design-switch button { padding: 7px; gap: 4px; font-size: 0; }
+  body.flight-view .design-switch button:after { font-size: 10px; content: '2'; }
+  body.flight-view .design-switch button:first-child:after { content: '1'; }
+  body.flight-view .design-switch svg { width: 14px; height: 14px; }
+  body.flight-view .flight-roster { height: 38px; padding: 0 10px; }
+  body.flight-view .sky.flying .balloon-track { width: min(43vw, 170px); height: min(50vw, 195px); left: 70%; }
+  body.flight-view .multiplier-wrap { top: 20px; left: 17px; }
+  body.flight-view .multiplier { font-size: 43px; }
+  body.flight-view .multiplier.level-three { font-size: 51px; }
+  body.flight-view .altitude { bottom: 16px; left: 17px; }
+  body.flight-view .level-lines { inset: 20px 10px 53px; }
+  body.flight-view .bet-dock { padding: 13px 15px; }
+  body.flight-view .bet-panel { display: flex; flex-direction: column; gap: 10px; }
+  body.flight-view .bet-options, body.flight-view .bet-actions { width: 100%; }
+  body.flight-view .booster-explanation p { font-size: 11px; line-height: 1.45; }
+  body.flight-view .spark-icon { font-size: 17px; }
+  body.flight-view .bet-total { font-size: 11px; }
+  body.flight-view .bet-total strong { font-size: 12px; }
+  body.flight-view .primary-button { min-height: 47px; padding: 11px; font-size: 16px; }
+  body.flight-view .flight-bottom { min-height: 36px; font-size: 9px; padding: 9px 10px; }
+  body.flight-view .flight-bottom .text-button { font-size: 9px; }
+}
+@media (max-height: 600px) and (min-width: 581px) {
+  body.flight-view .header { top: 6px; left: 12px; right: 12px; min-height: 48px; height: 48px; padding: 0 14px; }
+  body.flight-view .brand img { width: 106px; height: 43px; }
+  body.flight-view .header-nav { display: none; }
+  body.flight-view .balance { padding: 6px 10px; }
+  body.flight-view .flight-panel { inset: 62px 12px 8px; border-radius: 17px; }
+  body.flight-view .flight-toolbar { min-height: 44px; padding: 5px 12px; }
+  body.flight-view .theme-choice { padding: 7px 10px; font-size: 11px; }
+  body.flight-view .flight-roster { height: 30px; }
+  body.flight-view .live-rank-item { height: 26px; padding-top: 4px; padding-bottom: 4px; }
+  body.flight-view .flight-bottom { min-height: 28px; padding: 7px 12px; font-size: 9px; }
+  body.flight-view .flight-bottom .text-button { font-size: 9px; }
+  body.flight-view .flight-stage { display: block; }
+  body.flight-view .sky { height: 100%; }
+  body.flight-view .flight-world { right: 270px; }
+  body.flight-view .bet-dock { position: absolute; top: 0; bottom: 0; right: 0; width: 260px; padding: 12px; border: 0; background: #ffffffb5; }
+  body.flight-view .bet-panel { display: flex; flex-direction: column; gap: 10px; padding: 0; border: 0; box-shadow: none; background: transparent; }
+  body.flight-view .bet-options, body.flight-view .bet-actions { width: 100%; }
+  body.flight-view .bet-copy, body.flight-view .bet-grid, body.flight-view .button-caption { display: none; }
+  body.flight-view .booster-explanation { margin: 0; min-height: 0; }
+  body.flight-view .booster-explanation p { font-size: 10px; }
+  body.flight-view .bet-total { margin: 0; padding: 0; border: 0; font-size: 10px; }
+  body.flight-view .bet-total strong { font-size: 11px; }
+  body.flight-view .bet-action-buttons { margin-top: 9px; }
+  body.flight-view .primary-button { min-height: 42px; padding: 10px; font-size: 14px; }
+  body.flight-view .cashout-notice { margin-top: 7px; padding: 6px; font-size: 10px; }
+  body.flight-view .sky.flying .balloon-track { width: min(31vh, 160px); height: min(34vh, 180px); }
+  body.flight-view .multiplier-wrap { left: 20px; top: 14px; }
+  body.flight-view .multiplier { font-size: 43px; }
+  body.flight-view .multiplier.level-three { font-size: 51px; }
+  body.flight-view #multiplier-label { font-size: 9px; }
+  body.flight-view #flight-points { font-size: 11px; }
+  body.flight-view .altitude { left: 20px; bottom: 13px; }
+  body.flight-view .altitude > strong { font-size: 22px; }
+  body.flight-view .level-lines { inset: 15px 10px 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-cloud, body.flight-view .flight-panel { animation: none !important; }
+}

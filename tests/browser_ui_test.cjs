@@ -68,6 +68,7 @@ async function run() {
       check(metrics.titleFits, `${design} field heading fits ${width}px`);
       check(metrics.boxes.every(box => box.left >= 0 && box.right <= width), `${design} cards stay inside ${width}px`);
       check(metrics.integrated === (design === 'expanded') && metrics.controls === 1, 'One functional stake panel moves between designs');
+      if (design === 'expanded') check(await page.locator('#world-scene').evaluate(e => e.getBoundingClientRect().height >= document.body.scrollHeight - 2), 'Sky scenery covers the entire page');
       await page.screenshot({ path: path.join(artifacts, `${design}-${width}.png`), fullPage: true, animations: 'disabled' });
     }
   }
@@ -124,6 +125,8 @@ async function run() {
   await page.waitForFunction(() => document.getElementById('player-name').textContent === 'Проверка интерфейса');
   check(true, 'Profile saves through animated close');
 
+  // Compare the artwork over an identical background, independently of the sky palette.
+  await page.locator('.balloon-image-stack').evaluate(e => { e.style.background = '#eef5f8'; });
   for (const theme of ['green', 'red']) {
     await page.locator(`[data-theme-choice="${theme}"]`).click();
     await page.locator('.balloon-image-stack').screenshot({ path: path.join(artifacts, `balloon-${theme}.png`), animations: 'disabled' });
@@ -141,6 +144,7 @@ async function run() {
   }, balloonImages);
   // Allow 8-bit rounding of the same translucent source over different skies.
   check(colorDifference <= 1, 'Basket colors match within one channel level');
+  await page.locator('.balloon-image-stack').evaluate(e => { e.style.background = ''; });
 
   const api = async (route, data) => {
     const current = await (await context.request.get(base + '/api/state')).json();
@@ -154,24 +158,41 @@ async function run() {
     await page.locator(`[data-theme-choice="${theme}"]`).click();
     await api('/api/admin/scenario', { scenario: 'cashout' });
     await page.locator('.bet-card[data-tier="0"]').click();
+    await page.locator('#start').scrollIntoViewIfNeeded();
+    const savedScroll = await page.evaluate(() => scrollY);
     const fieldY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
     await page.locator('#start').click();
     await page.waitForFunction(() => !document.getElementById('cashout').hidden);
     const activeY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
-    check(Math.abs(fieldY - activeY) < 1, `${design}: field does not move when a round starts`);
+    if (design === 'classic') check(Math.abs(fieldY - activeY) < 1, 'Classic field does not move when a round starts');
+    else {
+      check(await page.evaluate(() => document.body.classList.contains('flight-view') && document.documentElement.classList.contains('has-flight')), 'Expanded flight fills and locks the viewport');
+      await page.waitForTimeout(300);
+      const before = await page.evaluate(() => ({ scroll: scrollY, cloud: new DOMMatrix(getComputedStyle(document.querySelector('.cloud-layer.near')).transform).m42, balloon: parseFloat(document.getElementById('balloon-track').style.bottom) }));
+      await page.mouse.move(600, 400); await page.mouse.wheel(0, 1000); await page.waitForTimeout(650);
+      const after = await page.evaluate(() => ({ scroll: scrollY, cloud: new DOMMatrix(getComputedStyle(document.querySelector('.cloud-layer.near')).transform).m42, balloon: parseFloat(document.getElementById('balloon-track').style.bottom) }));
+      check(after.scroll === before.scroll, 'Wheel cannot scroll the page during flight');
+      check(after.cloud > before.cloud + 2 && after.balloon > before.balloon, 'Clouds descend as the balloon rises');
+      await page.locator('#fair-open').click(); await page.waitForTimeout(270); await page.keyboard.press('Escape');
+      await page.locator('#fair-dialog').waitFor({ state: 'hidden' });
+      check(await page.evaluate(() => document.documentElement.classList.contains('has-flight') && !document.documentElement.classList.contains('has-dialog')), 'Closing a dialog keeps the flight scroll lock');
+    }
     await page.waitForFunction(() => !document.getElementById('cashout').disabled);
     if (design === 'expanded') {
       const hint = await page.locator('#onboarding').boundingBox(), button = await page.locator('#cashout').boundingBox();
       check(hint && hint.y + hint.height <= button.y, 'Onboarding sits above cashout and points down');
-      await page.screenshot({ path: path.join(artifacts, 'active-onboarding.png'), fullPage: true });
+      await page.screenshot({ path: path.join(artifacts, 'active-onboarding.png') });
       const roundBefore = await (await context.request.get(base + '/api/state')).json();
       await page.locator('[data-design-choice="classic"]').click();
+      check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'Classic design releases the flight lock');
       await page.locator('[data-design-choice="expanded"]').click();
       const roundAfter = await (await context.request.get(base + '/api/state')).json();
       check(roundBefore.round.id === roundAfter.round.id && roundBefore.player.balance === roundAfter.player.balance, 'Switching design preserves the active round and balance');
     }
     await page.locator('#cashout').click();
     await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 15000 });
+    check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'The end of the round releases the flight lock');
+    if (design === 'expanded') check(Math.abs(await page.evaluate(() => scrollY) - savedScroll) < 2, 'After landing the original scroll position is restored');
     await page.waitForTimeout(270);
     check(await page.locator('#result-dialog').getAttribute('data-outcome') === 'win', `${design}: cashout reaches the result window`);
     await page.screenshot({ path: path.join(artifacts, `result-${design}.png`) });
@@ -182,11 +203,53 @@ async function run() {
     await page.locator('#play-again').click();
     await page.locator('#result-dialog').waitFor({ state: 'hidden' });
   }
+
+  // Short and narrow screens retain the game and cashout inside the locked viewport.
+  await page.locator('[data-design-choice="expanded"]').click();
+  await page.setViewportSize({ width: 375, height: 700 });
+  await api('/api/admin/scenario', { scenario: 'cashout' });
+  await page.locator('.bet-card[data-tier="0"]').click(); await page.locator('#start').click();
+  await page.waitForFunction(() => document.body.classList.contains('flight-view'));
+  for (const [width, height] of [[375, 700], [320, 568], [844, 390], [1024, 700]]) {
+    await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
+    const metrics = await page.evaluate(() => {
+      const button = document.getElementById('cashout').getBoundingClientRect(), sky = document.getElementById('sky').getBoundingClientRect(), balloon = document.getElementById('balloon-track').getBoundingClientRect();
+      return { fits: button.top >= 0 && button.bottom <= innerHeight && button.left >= 0 && button.right <= innerWidth, sky: sky.height, balloonFits: balloon.top >= sky.top - 2 && balloon.bottom <= sky.bottom + 2, overflow: document.documentElement.scrollWidth > innerWidth };
+    });
+    await page.screenshot({ path: path.join(artifacts, `flight-${width}x${height}.png`) });
+    check(metrics.fits && !metrics.overflow, `Cashout stays accessible in ${width}×${height}`);
+    check(metrics.sky >= 100 && metrics.balloonFits, `Balloon stays inside the flight field in ${width}×${height}`);
+  }
+  await page.setViewportSize({ width: 375, height: 700 });
+  const touch = await context.newCDPSession(page);
+  await touch.send('Emulation.setTouchEmulationEnabled', { enabled: true });
+  const touchScroll = await page.evaluate(() => scrollY);
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 170, y: 440 }] });
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 170, y: 270 }] });
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.keyboard.press('PageDown'); await page.waitForTimeout(150);
+  check(await page.evaluate(() => scrollY) === touchScroll, 'Touch swipe and PageDown cannot scroll an active flight');
+  await touch.detach();
+  const liveRound = (await (await context.request.get(base + '/api/state')).json()).round.id;
+  await page.reload(); await page.waitForFunction(() => document.body.classList.contains('flight-view'));
+  check((await (await context.request.get(base + '/api/state')).json()).round.id === liveRound, 'Reload restores the flight and screen lock without a new stake');
+  await page.waitForFunction(() => !document.getElementById('cashout').disabled); await page.locator('#cashout').click();
+  await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 15000 });
+  await page.locator('#play-again').click(); await page.locator('#result-dialog').waitFor({ state: 'hidden' });
+  const landedScroll = await page.evaluate(() => scrollY);
+  await page.mouse.move(180, 350); await page.mouse.wheel(0, 400); await page.waitForTimeout(150);
+  check(await page.evaluate(() => scrollY) !== landedScroll, 'Page scrolling resumes after the round and result');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator('#rules-open').click();
   check(await page.locator('#rules-dialog').evaluate(d => getComputedStyle(d).animationName === 'none'), 'Reduced motion disables modal animation');
   const closedImmediately = await page.evaluate(() => { const d = document.getElementById('rules-dialog'); d.querySelector('[data-close]').click(); return !d.open; });
   check(closedImmediately, 'Reduced motion closes immediately');
+  await api('/api/admin/scenario', { scenario: 'crash' });
+  await page.locator('.bet-card[data-tier="0"]').click(); await page.locator('#start').click();
+  await page.waitForFunction(() => document.body.classList.contains('flight-view'));
+  check(await page.locator('#world-scene').evaluate(e => parseFloat(e.style.getPropertyValue('--flight-travel')) === 0 && getComputedStyle(e.querySelector('.world-cloud')).animationName === 'none'), 'Reduced motion disables scenery travel and drifting while retaining the flight view');
+  await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 10000 });
+  check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'A lost round also releases the flight lock');
   check(errors.length === 0, `No JavaScript errors: ${errors.join('; ')}`);
   console.log(`PASS: ${checks} browser checks; Chrome ${browser.version()}; screenshots in ${artifacts}`);
 }

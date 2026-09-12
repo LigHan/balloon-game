@@ -99,7 +99,7 @@ with tempfile.TemporaryDirectory(prefix="balloon-http-") as temp:
         initial = client.state()
         check(initial["player"]["balance"] == 1000, "Nonzero demo balance")
         check(any(c.name == "balloon_sid" for c in client.jar), "Identity cookie created")
-        for route in ["/", "/admin", "/presentation", "/style.css", "/ui.css", "/app.js", "/request-id.js", "/ui.js", "/admin.js", "/presentation.js", "/assets/balloon.png", "/assets/stoloto-logo.png", "/assets/roboto-flex.woff2", "/assets/favicon.svg"]:
+        for route in ["/", "/admin", "/presentation", "/style.css", "/ui.css", "/sky-scene.css", "/app.js", "/request-id.js", "/ui.js", "/sky-scene.js", "/admin.js", "/presentation.js", "/assets/balloon.png", "/assets/cloud.svg", "/assets/village.svg", "/assets/stoloto-logo.png", "/assets/roboto-flex.woff2", "/assets/favicon.svg"]:
             response = urllib.request.urlopen(BASE + route)
             check(response.status == 200 and len(response.read()) > 0, "Static route: " + route)
             check(response.headers.get("X-Content-Type-Options") == "nosniff", "Security header: " + route)

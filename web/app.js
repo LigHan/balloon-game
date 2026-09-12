@@ -1,6 +1,7 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
 const dialogs = createDialogController();
+const skyScene = createSkyScene();
 const money = (n) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n);
 const x = (n) => `×${Number(n).toFixed(2)}`;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -167,6 +168,7 @@ function render() {
   document.querySelector('.avatar').textContent = [...state.player.name][0].toUpperCase();
   $('connection').hidden = connected; $('demo-banner').hidden = !state.devMode;
   $('topup').disabled = busy || !connected;
+  skyScene.update(state.round);
   renderField(); buildBets(); renderControls(); renderLeaderboard(); renderHistory(); renderCollection();
 }
 function acceptState(data) {
@@ -307,4 +309,4 @@ setInterval(() => {
   if (!remaining) closeDialog($('result-dialog'));
 }, 200);
 document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (Date.now() - lastSuccess > 1500) { connected = false; if (state) renderControls(); } });
-initGameDesign(); updateSoundButton(); atmosphere(); birdLoop(); poll();
+initGameDesign(() => { if (state) render(); }); updateSoundButton(); atmosphere(); birdLoop(); poll();

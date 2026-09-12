@@ -65,7 +65,7 @@ function createDialogController(root = document) {
   return { open, close, isClosing: (dialog) => pending.has(dialog) };
 }
 
-function initGameDesign() {
+function initGameDesign(onChange = () => {}) {
   const panel = document.getElementById('bet-panel');
   const dock = document.getElementById('bet-dock');
   const sidebar = document.getElementById('side-panel');
@@ -77,6 +77,7 @@ function initGameDesign() {
     document.body.dataset.design = design;
     choices.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.designChoice === design)));
     if (persist) { try { localStorage.setItem('balloon.design', design); } catch { /* The view still works without saved preferences. */ } }
+    onChange(design);
   }
   let saved;
   try { saved = localStorage.getItem('balloon.design'); } catch { /* Use the default view. */ }

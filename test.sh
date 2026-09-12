@@ -21,6 +21,7 @@ mkdir -p build
 node --check web/app.js
 node --check web/request-id.js
 node --check web/ui.js
+node --check web/sky-scene.js
 node --check web/admin.js
 node --check web/presentation.js
 node --test tests/request_id_test.cjs
