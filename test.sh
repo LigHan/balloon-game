@@ -20,6 +20,7 @@ mkdir -p build
 "$BALLOON_JAVA" --add-modules jdk.httpserver -cp build balloon.GameTest
 node --check web/app.js
 node --check web/request-id.js
+node --check web/ui.js
 node --check web/admin.js
 node --check web/presentation.js
 node --test tests/request_id_test.cjs

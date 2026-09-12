@@ -1,5 +1,6 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
+const dialogs = createDialogController();
 const money = (n) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n);
 const x = (n) => `×${Number(n).toFixed(2)}`;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -25,8 +26,8 @@ async function api(path, body) {
   } finally { clearTimeout(timeout); }
 }
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 4000); }
-function openDialog(id) { const dialog = $(id); if (!dialog.open) dialog.showModal(); }
-function closeDialog(dialog) { dialog.close(); }
+function openDialog(id) { dialogs.open($(id)); }
+function closeDialog(dialog) { return dialogs.close(dialog); }
 function sound(kind = 'tap') {
   if (!soundEnabled) return;
   try {
@@ -72,7 +73,6 @@ function buildBets() {
 function renderControls() {
   const r = activeRound();
   $('start').hidden = !!r; $('cashout').hidden = !r;
-  $('live-ranking').hidden = !r;
   $('start').disabled = busy || !connected || !state.config.is_active || selected === null || state.config.stakes[selected] > state.player.balance;
   $('start').querySelector('span').textContent = !state.config.is_active ? 'Полёты приостановлены' : busy ? 'Готовимся к взлёту…' : 'Начать полёт';
   $('bet-heading').textContent = r ? 'Твой полёт' : 'Твой билет в небо';
@@ -84,10 +84,15 @@ function renderControls() {
     const cashed = r.cashoutMultiplier !== null;
     $('cashout').disabled = busy || !connected || cashed || r.highestLine < 1;
     $('cashout').textContent = !connected ? 'Восстанавливаем связь…' : cashed ? `Забрано ${money(r.payout)} Б` : r.highestLine < 1 ? 'Забрать · после 1-го уровня' : `Забрать ${money(r.cashoutValue)} Б`;
+    if (r.highestLine >= 1 && !cashed && !localStorage.getItem('balloon.onboarded')) {
+      $('onboarding').hidden = false; localStorage.setItem('balloon.onboarded', '1');
+      setTimeout(() => { $('onboarding').hidden = true; }, 4500);
+    }
+    if (cashed) $('onboarding').hidden = true;
     $('cashout-notice').hidden = !cashed;
     $('cashout-notice').textContent = cashed ? `Зафиксировано ${x(r.cashoutMultiplier)}. Могли бы забрать больше — шар продолжает полёт.` : '';
     $('button-caption').textContent = cashed ? 'Сумма выигрыша больше не изменится.' : 'Выплата рассчитывается сервером в момент запроса.';
-  } else { $('cashout-notice').hidden = true; $('button-caption').textContent = 'Играем на бонусы. Без реальных денег.'; }
+  } else { $('onboarding').hidden = true; $('cashout-notice').hidden = true; $('button-caption').textContent = 'Играем на бонусы. Без реальных денег.'; }
 }
 function renderField() {
   const round = state.round;
@@ -194,10 +199,11 @@ function showResult(r) {
   shownResult = r.id; resultDeadline = Date.now() + 10000;
   const won = r.cashoutMultiplier !== null;
   $('result-symbol').textContent = won ? '✦' : '↘';
-  $('result-title').textContent = won ? 'Высота взята!' : 'В этот раз — ветер сильнее';
+  $('result-dialog').dataset.outcome = won ? 'win' : 'loss';
+  $('result-title').textContent = won ? 'Выигрыш на балансе!' : 'Шар лопнул';
   $('result-amount').textContent = `${won ? '+' : '−'}${money(won ? r.payout : r.stake)} Б`;
   $('result-amount').classList.toggle('loss', !won);
-  $('result-description').textContent = won ? `Могли бы забрать больше: до ${money(r.potentialMaximum)} Б при ${x(r.potentialMultiplier)}. Это предел перед крахом; в момент взрыва забрать уже нельзя.` : 'Шар лопнул раньше, чем ты забрал выигрыш. Ставка потеряна, а очки и марка остаются.';
+  $('result-description').textContent = won ? `Ты успел забрать бонусы. Могли бы забрать больше: до ${money(r.potentialMaximum)} Б при ${x(r.potentialMultiplier)} перед крахом.` : 'В этот раз забрать не удалось. Ставка потеряна, а заработанные очки и марка остаются у тебя.';
   $('result-multiplier').textContent = x(won ? r.cashoutMultiplier : r.multiplier); $('result-points').textContent = `+${money(r.points)}`;
   $('result-reward').textContent = r.reward.name;
   document.querySelector('.reward-card small').textContent = r.reward.isNew ? 'НОВАЯ МАРКА В КОЛЛЕКЦИИ' : 'ЕЩЁ ОДНА МАРКА В КОЛЛЕКЦИИ';
@@ -221,7 +227,29 @@ function showFair(proof = state?.round) {
 function showRules() {
   if (!state) { toast('Загружаем правила с сервера…'); return; }
   const c = state.config, t = c[theme];
-  $('rules-content').innerHTML = `<p>Это бонусная crash-игра. Реальных денег, покупок и денежных призов в прототипе нет.</p><h3>01. Выбери свой полёт</h3><p>Зелёный маршрут содержит <b>9 уровней</b>, красный — <b>12</b>. Четыре ставки: ${c.stakes.map(money).join(', ')} бонусов. Их бустеры: ${c.boosters.map(v => '×' + v).join(', ')}. Стоимость списывается один раз при старте.</p><h3>02. Успей забрать</h3><p>Коэффициент начинает расти с ×1.00. После первого уровня станет доступна кнопка «Забрать». Выплата = ставка × коэффициент на сервере в момент обработки cashout, округление вниз до 0,01 бонуса. Если шар лопнет раньше — ставка потеряна. После cashout полёт продолжается, но выплата зафиксирована.</p><h3>03. Поймай бустер</h3><p>Бустер ждёт на случайном уровне: более вероятные позиции задаются весами в конфигурации. Он умножает коэффициент только при достижении этого уровня до cashout. Уровни отсчитываются по базовому коэффициенту: скачок от бустера не перескакивает линии. ×1 означает полёт без усиления.</p><h3>04. Очки и коллекция</h3><p>Каждый пройденный уровень приносит ${c.points_per_line} очков; успешный cashout — ещё ${c.points_cashout_bonus}. Бонусы за активацию бустеров: ${c.points_xN_bonus.map((n,i) => '×'+c.boosters[i]+' → '+n).join('; ')} очков. Очки за новые уровни продолжают начисляться до краха, включая время после cashout. Это рейтинг, а не расходуемые бонусы.</p><p>После любого завершённого раунда выдаётся одна из шести случайных марок с равной вероятностью 1/6. Шесть разных марок автоматически обмениваются на ${c.album_bonus} бонусов. По одной каждого вида расходуется, дубликаты остаются.</p><h3>05. Как устроена случайность</h3><p>Точка краха и позиция бустера выбираются сервером до взлёта. Для текущей темы базовый предел — ×${t.max_multiplier}, минимальный крах — ×${t.min_crash_multiplier}, параметр риска α=${t.alpha}, рост ${t.multiplier_growth_rate} в секунду. Чем выше α, тем чаще ранние крахи; бустер может увеличить итоговый коэффициент сверх базового предела.</p><p>Границы уровней равномерны по времени полёта: Bᵢ = M^(i/(N+1)). Первый уровень сейчас примерно ${x(Math.pow(t.max_multiplier, 1 / (t.levels + 1)))}. Крах на границе имеет приоритет: сама граница ещё не пройдена. Случайный раунд может закончиться до первого уровня.</p><h3>06. Результат и возвращение</h3><p>Итог появится после краха. Через 10 секунд бездействия вернёмся к ставкам с сохранением темы. При закрытии страницы полёт продолжается на сервере; после возвращения загружается его актуальное состояние. При потере связи cashout недоступен до восстановления. Правила новых ставок соответствуют конфигурации ${esc(state.configVersion)}.</p>`;
+  const steps = [
+    ['Выбери ставку', `Стоимость полёта: ${c.stakes.map(money).join(', ')} бонусов. Усиление для каждой ставки: ${c.boosters.map(v => '×' + v).join(', ')}. Бонусы списываются один раз при старте.`],
+    ['Забери вовремя', 'После первого уровня нажми «Забрать», пока шар не лопнул. Выплата = ставка × текущий коэффициент. После cashout выигрыш зафиксирован, а полёт продолжается.'],
+    ['Долети до бустера', 'Усиление ждёт на случайном уровне. Если ты достигнешь его до cashout, коэффициент умножится. ×1 — полёт без усиления. После cashout бустер не активируется.'],
+    ['Собирай своё небо', `Каждый завершённый полёт приносит марку, даже при проигрыше. Собери 6 разных и получи ${money(c.album_bonus)} бонусов. Дубликаты остаются для следующего альбома.`],
+  ];
+  $('rules-content').innerHTML = `
+    <div class="rules-summary"><span>Зелёный · 9 уровней</span><span>Красный · 12 уровней</span><span>Игра за бонусы</span></div>
+    <p class="dialog-lead">Поднимайся выше и выбирай момент, чтобы забрать выигрыш. Здесь только имитационные бонусы — без реальных денег, покупок и денежных призов.</p>
+    <ol class="rules-steps">${steps.map(([title, text]) => `<li><h3>${title}</h3><p>${text}</p></li>`).join('')}</ol>
+    <details class="rule-details"><summary>Как начисляются очки и марки</summary>
+      <p>За уровень: ${c.points_per_line} очков. За успешный cashout: ещё ${c.points_cashout_bonus}. За бустеры: ${c.points_xN_bonus.map((n, i) => '×' + c.boosters[i] + ' → ' + n).join('; ')} очков. Очки за высоту продолжают расти после cashout и сохраняются при проигрыше.</p>
+      <p>Игровые очки определяют место в бессрочном рейтинге и не расходуются на ставки. Все шесть марок выпадают с вероятностью 1/6. При сборе альбома обменивается по одной марке каждого вида.</p>
+    </details>
+    <details class="rule-details"><summary>Расчёт полёта и вероятности</summary>
+      <p>Первый уровень на выбранном маршруте: примерно ${x(Math.pow(t.max_multiplier, 1 / (t.levels + 1)))}. Границы уровней: Bᵢ = M^(i/(N+1)). Они определяются базовым коэффициентом; бустер не перескакивает уровни. Крах на самой границе происходит раньше её прохождения.</p>
+      <p>Минимальный крах: ×${t.min_crash_multiplier}. Базовый предел: ×${t.max_multiplier}. Параметр риска α = ${t.alpha}: чем он выше, тем чаще ранние крахи. Скорость роста: ${t.multiplier_growth_rate} в секунду. Раунд может закончиться до первого уровня; бустер может повысить итоговый коэффициент сверх базового предела.</p>
+      <p>Позиция бустера выбирается по весам уровней в конфигурации. Выплату рассчитывает сервер в момент cashout и округляет вниз до 0,01 бонуса. После краха забрать уже нельзя.</p>
+    </details>
+    <details class="rule-details"><summary>После полёта и при потере связи</summary>
+      <p>Результат появится после краха. Через 10 секунд бездействия окно закроется. «Играть снова» сохранит тему и выбранную ставку.</p>
+      <p>При закрытии страницы полёт продолжается. После возвращения загрузится его актуальное состояние. Пока связь потеряна, cashout недоступен. Настройки новых ставок: ${esc(state.configVersion)}.</p>
+    </details>`;
   openDialog('rules-dialog');
 }
 
@@ -235,7 +263,6 @@ $('start').addEventListener('click', () => act(async () => {
   await new Promise((resolve) => setTimeout(resolve, 350));
   const round = await api('/api/rounds', pending);
   sessionStorage.removeItem('balloon.pendingStart'); localStorage.setItem(`balloon.commit.${round.id}`, round.commitment); snapshots.set(round.id, round.commitment);
-  if (!localStorage.getItem('balloon.onboarded')) { $('onboarding').hidden = false; localStorage.setItem('balloon.onboarded', '1'); setTimeout(() => $('onboarding').hidden = true, 4000); }
 }));
 $('cashout').addEventListener('click', () => act(async () => { if (!activeRound()) return; await api(`/api/rounds/${state.round.id}/cashout`, {}); sound('cashout'); $('onboarding').hidden = true; }));
 document.querySelectorAll('[data-theme-choice]').forEach((button) => button.addEventListener('click', () => { if (activeRound() || busy) return; theme = button.dataset.themeChoice; localStorage.setItem('balloon.theme', theme); atmosphere(); sound(); render(); }));
@@ -248,13 +275,13 @@ $('leaderboard-open').addEventListener('click', () => openDialog('leaderboard-di
 $('fair-open').addEventListener('click', () => showFair());
 $('result-fair').addEventListener('click', () => { resultDeadline = Date.now() + 10000; showFair(); });
 $('sound-toggle').addEventListener('click', () => { soundEnabled = !soundEnabled; localStorage.setItem('balloon.sound', soundEnabled ? '1' : '0'); updateSoundButton(); sound(); });
-$('play-again').addEventListener('click', () => $('result-dialog').close());
+$('play-again').addEventListener('click', () => closeDialog($('result-dialog')));
 $('result-dialog').addEventListener('close', acknowledgeResult);
 $('result-dialog').addEventListener('pointerdown', () => resultDeadline = Date.now() + 10000);
 $('result-dialog').addEventListener('keydown', () => resultDeadline = Date.now() + 10000);
 $('fair-dialog').addEventListener('close', () => { if ($('result-dialog').open) resultDeadline = Date.now() + 10000; });
 $('profile-open').addEventListener('click', () => { if (!state) return; $('profile-name').value = state.player.name; openDialog('profile-dialog'); });
-$('profile-form').addEventListener('submit', (event) => { event.preventDefault(); act(async () => { await api('/api/profile', { name: $('profile-name').value }); $('profile-dialog').close(); }); });
+$('profile-form').addEventListener('submit', (event) => { event.preventDefault(); act(async () => { await api('/api/profile', { name: $('profile-name').value }); await closeDialog($('profile-dialog')); }); });
 $('verify-proof').addEventListener('click', async () => {
   try {
     if (!crypto.subtle) throw new Error('Для проверки открой игру на localhost или по HTTPS.');
@@ -263,18 +290,21 @@ $('verify-proof').addEventListener('click', async () => {
     $('fair-verdict').textContent = hash === fairData.expected ? '✓ Хеш совпал. Зафиксированные данные раунда не изменились.' : 'Хеш не совпал. Данные не соответствуют зафиксированному хешу.';
   } catch (error) { $('fair-verdict').textContent = error.message; }
 });
-document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => closeDialog(button.closest('dialog'))));
-document.querySelectorAll('dialog').forEach((dialog) => {
-  dialog.addEventListener('click', (event) => { if (event.target !== dialog) return; const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); });
+const rankingHeader = $('leaderboard-dialog').querySelector('.dialog-header');
+let rankingTouch = null;
+rankingHeader.addEventListener('pointerdown', (event) => {
+  rankingTouch = event.pointerType === 'touch' && !event.target.closest('button') ? { x: event.clientX, y: event.clientY } : null;
 });
-let touchStart = 0;
-$('leaderboard-dialog').addEventListener('touchstart', (event) => { touchStart = event.touches[0].clientY; }, { passive: true });
-$('leaderboard-dialog').addEventListener('touchend', (event) => { if (event.changedTouches[0].clientY - touchStart > 100 && $('leaderboard-full').scrollTop === 0) $('leaderboard-dialog').close(); }, { passive: true });
+rankingHeader.addEventListener('pointerup', (event) => {
+  if (rankingTouch && event.clientY - rankingTouch.y > 90 && Math.abs(event.clientX - rankingTouch.x) < 50) closeDialog($('leaderboard-dialog'));
+  rankingTouch = null;
+});
+rankingHeader.addEventListener('pointercancel', () => { rankingTouch = null; });
 setInterval(() => {
   if (lastSuccess && Date.now() - lastSuccess > 1500 && connected) { connected = false; $('connection').hidden = false; renderControls(); }
-  if (!resultDeadline || !$('result-dialog').open || $('fair-dialog').open) return;
+  if (!resultDeadline || !$('result-dialog').open || dialogs.isClosing($('result-dialog')) || $('fair-dialog').open) return;
   const remaining = Math.max(0, Math.ceil((resultDeadline - Date.now()) / 1000)); $('result-countdown').textContent = remaining;
-  if (!remaining) $('result-dialog').close();
+  if (!remaining) closeDialog($('result-dialog'));
 }, 200);
 document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (Date.now() - lastSuccess > 1500) { connected = false; if (state) renderControls(); } });
-updateSoundButton(); atmosphere(); birdLoop(); poll();
+initGameDesign(); updateSoundButton(); atmosphere(); birdLoop(); poll();

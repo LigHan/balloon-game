@@ -1,0 +1,230 @@
+/* Shared game controls and the optional panoramic layout. */
+html { scrollbar-gutter: stable; }
+html.has-dialog { overflow: hidden; }
+body { min-width: 0; }
+.page-top { flex-wrap: wrap; }
+.view-settings { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: -4px 0 20px; }
+.design-label { font-size: 13px; color: var(--muted); }
+.design-switch { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid #e0e4ea; border-radius: 12px; background: #e9ecf1; }
+.design-switch button { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-radius: 8px; background: transparent; color: #657080; font-size: 13px; font-weight: 560; }
+.design-switch button[aria-pressed='true'] { background: #fff; color: #18222f; box-shadow: 0 2px 5px #18222f0b; }
+.design-switch svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.flight-roster { display: flex; align-items: center; gap: 12px; height: 55px; min-width: 0; padding: 0 20px; border-top: 1px solid #eef0f3; background: #fafbfc; }
+.roster-label { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 550; color: #858e9b; white-space: nowrap; }
+.live-ranking { flex: 1; min-width: 0; height: 100%; align-items: center; padding: 0; }
+.live-rank-item { height: 31px; padding: 6px 10px; background: #f0f2f6; font-size: 11px; }
+.live-rank-item strong { font-size: 12px; }
+.roster-loading { color: #9098a5; font-size: 12px; }
+.flight-stage { position: relative; }
+.flight-world { position: absolute; inset: 0; }
+.bet-dock:empty { display: none; }
+.bet-copy > .muted { margin-top: 9px; }
+.bet-action-buttons { position: relative; margin-top: 18px; }
+.onboarding { left: 0; right: 0; bottom: calc(100% + 12px); padding: 13px 17px 9px; text-align: center; animation: hint-enter .2s ease-out; }
+.onboarding svg { display: block; width: 24px; height: 24px; margin: 5px auto 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: hint-arrow .7s ease-in-out alternate infinite; }
+.balloon-art { display: grid; place-items: center; }
+.balloon-image-stack { position: relative; width: 100%; aspect-ratio: 1; }
+.balloon-image-stack img { display: block; width: 100%; height: 100%; }
+.balloon-image-stack .balloon-canopy { position: absolute; inset: 0; clip-path: inset(0 0 25% 0); opacity: 0; filter: hue-rotate(245deg) saturate(1.35); }
+body[data-theme='red'] .balloon-art { filter: drop-shadow(12px 18px 16px #81332022); }
+body[data-theme='red'] .balloon-canopy { opacity: 1; }
+
+body[data-design='expanded'] .shell { max-width: 1536px; }
+body[data-design='expanded'] .game-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+body[data-design='expanded'] .flight-panel { border-radius: 24px; }
+body[data-design='expanded'] .sky { height: 570px; }
+body[data-design='expanded'] .flight-world { right: 376px; }
+body[data-design='expanded'] .sky-heading { left: 40px; top: 36px; }
+body[data-design='expanded'] .sky-heading h2 { font-size: clamp(34px, 3.3vw, 48px); letter-spacing: -1.2px; }
+body[data-design='expanded'] .sky-heading p { max-width: 240px; font-size: 15px; }
+body[data-design='expanded'] .balloon-track { left: 66%; width: 340px; height: 370px; bottom: 35px; }
+body[data-design='expanded'] .sky.flying .balloon-track { width: 265px; height: 290px; }
+body[data-design='expanded'] .multiplier-wrap { left: 40px; top: 34px; }
+body[data-design='expanded'] .altitude { left: 40px; }
+body[data-design='expanded'] .bet-dock { position: absolute; top: 22px; right: 22px; bottom: 22px; width: 332px; display: flex; align-items: center; z-index: 15; }
+body[data-design='expanded'] .bet-panel { width: 100%; padding: 25px; border-color: #ffffffb8; background: #fffffff0; box-shadow: 0 14px 45px #2d51651a; backdrop-filter: blur(16px); border-radius: 20px; }
+body[data-design='expanded'] .section-heading { font-size: 21px; }
+body[data-design='expanded'] .bet-grid { gap: 7px; margin-top: 21px; }
+body[data-design='expanded'] .bet-card { padding: 13px 3px 11px; }
+body[data-design='expanded'] .bet-card strong { font-size: 21px; }
+body[data-design='expanded'] .booster-explanation { min-height: 59px; }
+body[data-design='expanded'] .side-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); align-items: stretch; gap: 20px; }
+body[data-design='expanded'] .collection-teaser { align-self: stretch; }
+body[data-design='expanded'] .collection-teaser > button { height: 100%; min-height: 135px; padding: 27px; gap: 20px; }
+body[data-design='expanded'] .collection-mark { font-size: 52px; }
+body[data-design='expanded'] .collection-teaser strong { font-size: 21px; }
+body[data-design='expanded'] .collection-teaser small { font-size: 13px; line-height: 1.6; }
+body[data-design='expanded'] .leaderboard-panel { padding: 21px 25px; }
+body[data-design='expanded'] .leaderboard-preview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+body[data-design='expanded'] .leaderboard-preview .rank-row { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 7px; background: #f6f7f9; padding: 12px; }
+body[data-design='expanded'] .leaderboard-preview .rank-row.me { background: #fff7d7; }
+body[data-design='expanded'] .leaderboard-preview .rank-points { grid-column: 2; margin: 0; font-size: 12px; }
+body[data-design='expanded'] .leaderboard-preview .rank-you { display: none; }
+
+/* Native dialogs retain focus trapping; their bodies scroll independently. */
+.dialog { width: calc(100% - 40px); max-width: 620px; max-height: min(820px, calc(100dvh - 48px)); margin: auto; border: 1px solid #ffffff8c; border-radius: 25px; overflow: hidden; box-shadow: 0 28px 100px #101d3542; }
+.dialog[open] { display: flex; flex-direction: column; animation: dialog-enter .24s cubic-bezier(.2,.8,.2,1) both; }
+.dialog.is-closing { animation: dialog-exit .18s ease-in both; pointer-events: none; }
+.dialog::backdrop { background: #111d346b; backdrop-filter: blur(7px); animation: backdrop-enter .24s ease-out both; }
+.dialog.is-closing::backdrop { animation: backdrop-exit .18s ease-in both; }
+.dialog-header { flex-shrink: 0; padding: 25px 28px 22px; align-items: flex-start; border-bottom: 1px solid #edf0f4; background: linear-gradient(135deg, #fffdf5, #fff 65%); }
+.dialog-heading { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.dialog-icon { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; background: #fff0b0; color: #8f6b0c; border-radius: 14px; font-size: 24px; line-height: 1; }
+.dialog-header .eyebrow { color: #8b95a3; font-size: 10px; letter-spacing: 1px; line-height: 1.4; }
+.dialog-header h2 { margin-top: 5px; font-size: 25px; line-height: 1.18; letter-spacing: -.7px; }
+.dialog h2[tabindex='-1']:focus { outline: none; }
+.close-button { width: 36px; height: 36px; border-radius: 11px; color: #677283; background: #eff2f6; }
+.close-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.dialog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 22px 28px 26px; scrollbar-width: thin; scrollbar-color: #d5dbe5 transparent; font-size: 14px; line-height: 1.65; }
+.dialog-footer { flex-shrink: 0; padding: 18px 28px 22px; background: #fff; border-top: 1px solid #edf0f4; }
+.dialog-footer .primary-button { min-height: 50px; font-size: 15px; }
+.dialog-note { flex-shrink: 0; padding: 18px 28px 12px; font-size: 13px; color: #808c9d; }
+.dialog-lead { color: #667486; font-size: 14px; line-height: 1.7; }
+.rules-dialog { max-width: 720px; }
+.rules-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.rules-summary span { background: #f1f4f8; border-radius: 7px; padding: 7px 11px; color: #667486; font-size: 12px; }
+.rules-steps { list-style: none; counter-reset: rules; padding: 0 !important; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 24px; }
+.rules-steps li { counter-increment: rules; margin: 0; padding: 18px; border: 1px solid #e9edf2; border-radius: 15px; background: #fafbfc; }
+.rules-steps li:before { content: '0' counter(rules); display: grid; place-items: center; width: 29px; height: 29px; margin-bottom: 14px; background: #ffed9d; color: #82640e; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.rules-steps h3 { margin: 0 0 7px; font-size: 16px; letter-spacing: -.2px; }
+.rules-steps p { color: #738093; font-size: 13px; line-height: 1.65; margin: 0; }
+.rule-details { padding: 16px 0; border-top: 1px solid #e9edf2; }
+.rule-details summary { cursor: pointer; font-weight: 650; font-size: 14px; }
+.rule-details p { margin: 12px 0 0; color: #738093; font-size: 13px; }
+.result-dialog { max-width: 480px; }
+.result-dialog .dialog-header { align-items: center; text-align: left; padding-top: 20px; padding-bottom: 17px; }
+.result-dialog .dialog-body { padding-top: 21px; padding-bottom: 22px; }
+.result-symbol { display: grid; place-items: center; width: 70px; height: 70px; margin: 0 auto 15px; border-radius: 23px; background: #fff4c5; color: #d5a613; font-size: 42px; }
+.result-dialog[data-outcome='loss'] .result-symbol { background: #fff0e9; color: #d38361; }
+.result-dialog h2 { font-size: 26px; }
+.result-amount { margin-top: 10px; font-size: 45px; }
+#result-description { font-size: 13px; line-height: 1.65; max-width: 340px; margin: 13px auto 0; }
+.result-stats { margin: 20px 0 16px; padding: 16px; border: 1px solid #e9edf2; background: #f8f9fb; }
+.result-stats strong { font-size: 22px; }
+.reward-card { border-color: #eedfae; background: #fffaf0; padding: 16px; }
+.reward-card > span { flex-shrink: 0; }
+.reward-card small { font-size: 9px; }
+.reward-card strong { margin: 3px 0; font-size: 16px; }
+.result-dialog .button-caption { font-size: 11px; }
+.leaderboard-top { flex-shrink: 0; padding: 0 28px 14px; }
+.rank-scroll { max-height: none; min-height: 70px; padding-top: 10px; padding-bottom: 14px; }
+.leaderboard-dialog .dialog-footer { padding-top: 12px; padding-bottom: 15px; }
+.stamp-grid { margin: 21px 0; gap: 12px; }
+.stamp { padding: 20px 8px; border-radius: 14px; }
+.stamp > span { margin-bottom: 9px; font-size: 36px; }
+.stamp strong { font-size: 13px; }
+.collection-summary { padding: 13px; border-radius: 10px; background: #f6f8fa; color: #758194; font-size: 12px; }
+.fair-notice { padding: 13px 15px; margin: 16px 0; border-radius: 11px; background: #f4f6fa; color: #778396; font-size: 12px; }
+.hash-block, .proof-block { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; }
+#fair-verdict { margin-top: 13px; color: #637487; font-size: 13px; }
+.small-dialog { max-width: 440px; }
+.dialog > form { display: flex; flex-direction: column; min-height: 0; max-height: inherit; }
+.profile-help { margin-top: 15px !important; color: #8993a2; font-size: 12px; }
+.profile-dialog .field-label { margin-top: 0; }
+.profile-dialog input { padding: 14px 15px; background: #fafbfc; }
+
+@keyframes dialog-enter { from { opacity: 0; transform: translateY(20px) scale(.965); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes dialog-exit { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(12px) scale(.98); } }
+@keyframes backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes backdrop-exit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes hint-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hint-arrow { to { transform: translateY(4px); } }
+
+@media (max-width: 1150px) {
+  body[data-design='expanded'] .sky { height: 535px; }
+  body[data-design='expanded'] .flight-world { right: 332px; }
+  body[data-design='expanded'] .bet-dock { right: 16px; top: 16px; bottom: 16px; width: 300px; }
+  body[data-design='expanded'] .bet-panel { padding: 21px; }
+  body[data-design='expanded'] .sky-heading, body[data-design='expanded'] .multiplier-wrap { left: 27px; }
+  body[data-design='expanded'] .sky-heading h2 { font-size: 34px; }
+  body[data-design='expanded'] .sky-heading p { max-width: 200px; font-size: 14px; }
+  body[data-design='expanded'] .balloon-track { width: 265px; height: 315px; left: 67%; }
+  body[data-design='expanded'] .sky.flying .balloon-track { width: 225px; height: 270px; }
+  body[data-design='expanded'] .collection-teaser > button { padding: 22px; gap: 15px; }
+  body[data-design='expanded'] .collection-teaser strong { font-size: 18px; }
+  body[data-design='expanded'] .collection-teaser small { font-size: 11px; }
+  body[data-design='expanded'] .leaderboard-panel { padding: 20px; }
+}
+@media (max-width: 900px) {
+  body[data-design='expanded'] .flight-world { right: 0; }
+  body[data-design='expanded'] .sky { height: 460px; }
+  body[data-design='expanded'] .sky-heading h2 { font-size: 40px; }
+  body[data-design='expanded'] .balloon-track { width: 300px; height: 330px; }
+  body[data-design='expanded'] .bet-dock { position: relative; inset: auto; width: auto; padding: 20px; background: #f8fafc; border-top: 1px solid #e5eaf0; }
+  body[data-design='expanded'] .bet-panel { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 30px; padding: 0; box-shadow: none; background: transparent; border: 0; backdrop-filter: none; }
+  body[data-design='expanded'] .bet-copy { grid-column: 1 / -1; }
+  body[data-design='expanded'] .bet-copy > .muted { font-size: 13px; margin-top: 5px; }
+  body[data-design='expanded'] .bet-options { min-width: 0; }
+  body[data-design='expanded'] .bet-actions { align-self: center; }
+  body[data-design='expanded'] .bet-grid { margin-top: 17px; }
+  body[data-design='expanded'] .booster-explanation { min-height: 0; margin-top: 12px; }
+  body[data-design='expanded'] .booster-explanation p { font-size: 12px; }
+  body[data-design='expanded'] .bet-total { margin-top: 16px; padding-top: 0; border-top: 0; }
+  body[data-design='expanded'] .side-panel { grid-template-columns: minmax(0, 1fr); gap: 15px; }
+  body[data-design='expanded'] .collection-teaser > button { min-height: 106px; }
+  .dialog { max-height: calc(100dvh - 32px); }
+}
+@media (max-width: 580px) {
+  .page-top .top-actions { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .view-settings { margin: 0 0 16px; gap: 8px; }
+  .design-label { font-size: 11px; }
+  .design-switch { padding: 3px; gap: 2px; border-radius: 10px; }
+  .design-switch button { font-size: 11px; gap: 6px; padding: 9px 10px; border-radius: 7px; }
+  .design-switch svg { width: 16px; height: 16px; }
+  .flight-roster { height: 49px; padding: 0 12px; gap: 9px; }
+  .roster-label { font-size: 10px; }
+  .live-rank-item { font-size: 10px; gap: 8px; height: 29px; }
+  .live-rank-item strong { font-size: 10px; }
+  .live-rank-item span { max-width: 90px; }
+  body[data-design='expanded'] .flight-panel { border-radius: 18px; }
+  body[data-design='expanded'] .sky { height: 395px; }
+  body[data-design='expanded'] .sky-heading { left: 22px; top: 24px; }
+  body[data-design='expanded'] .sky-heading h2 { font-size: 31px; letter-spacing: -.7px; }
+  .sky-heading p, body[data-design='expanded'] .sky-heading p { max-width: 135px; font-size: 12px; }
+  .balloon-track, body[data-design='expanded'] .balloon-track { left: 73%; width: 200px; height: 260px; }
+  body[data-design='expanded'] .sky.flying .balloon-track { width: 180px; height: 215px; }
+  body[data-design='expanded'] .multiplier-wrap { left: 22px; top: 24px; }
+  body[data-design='expanded'] .altitude { left: 23px; }
+  body[data-design='expanded'] .bet-dock { padding: 22px 19px; }
+  body[data-design='expanded'] .bet-panel { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  body[data-design='expanded'] .bet-copy { grid-column: auto; }
+  body[data-design='expanded'] .bet-card { padding: 13px 3px; }
+  body[data-design='expanded'] .bet-card strong { font-size: 23px; }
+  body[data-design='expanded'] .bet-total { margin-top: 18px; padding-top: 16px; border-top: 1px solid #e4e8ee; }
+  body[data-design='expanded'] .leaderboard-panel { padding: 20px 16px; }
+  body[data-design='expanded'] .leaderboard-preview { gap: 6px; }
+  body[data-design='expanded'] .leaderboard-preview .rank-row { padding: 10px 7px; font-size: 11px; grid-template-columns: 12px minmax(0, 1fr); gap: 5px; }
+  body[data-design='expanded'] .leaderboard-preview .rank-points { font-size: 10px; }
+  body[data-design='expanded'] .collection-teaser > button { padding: 20px; }
+  body[data-design='expanded'] .collection-mark { font-size: 39px; }
+  .dialog { width: calc(100% - 24px); border-radius: 21px; max-height: calc(100dvh - 24px); }
+  .dialog-header { padding: 20px 19px 17px; gap: 10px; }
+  .dialog-heading { gap: 10px; }
+  .dialog-icon { width: 36px; height: 36px; font-size: 21px; border-radius: 11px; }
+  .dialog-header h2 { font-size: 21px; letter-spacing: -.4px; }
+  .dialog-header .eyebrow { font-size: 9px; letter-spacing: .6px; }
+  .close-button { width: 32px; height: 32px; border-radius: 10px; }
+  .dialog-body { padding: 18px 20px 22px; font-size: 13px; }
+  .dialog-footer { padding: 15px 20px 19px; }
+  .dialog-note { padding: 16px 20px 10px; font-size: 12px; }
+  .leaderboard-top { padding: 0 20px 10px; }
+  .rules-steps { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .rules-steps li { padding: 16px; }
+  .rules-steps li:before { float: left; margin: 0 13px 20px 0; }
+  .rules-steps h3 { font-size: 15px; }
+  .rules-steps p { padding-left: 42px; font-size: 12px; }
+  .result-dialog .dialog-header { padding: 17px 20px; }
+  .result-symbol { width: 58px; height: 58px; font-size: 36px; border-radius: 19px; }
+  .result-dialog h2 { font-size: 23px; }
+  .result-amount { font-size: 39px; }
+  .stamp-grid { gap: 8px; }
+  .stamp { padding: 15px 4px; }
+  .stamp strong { font-size: 11px; }
+}
+@media (max-width: 360px) {
+  body[data-design='expanded'] .sky-heading h2 { font-size: 27px; }
+  .sky-heading p, body[data-design='expanded'] .sky-heading p { max-width: 110px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open], .dialog.is-closing, .dialog::backdrop, .dialog.is-closing::backdrop, .onboarding, .onboarding svg { animation: none !important; }
+}
