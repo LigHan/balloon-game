@@ -5,6 +5,7 @@
     <linearGradient id="tree" x2="1" y2="1"><stop stop-color="#96c980"/><stop offset="1" stop-color="#418c71"/></linearGradient>
     <g id="oak"><path d="M0 103V38m0 42-18-19m18 8 17-20" stroke="#a88863" stroke-width="7" stroke-linecap="round"/><path d="M-26 74C-62 61-48 27-27 27-33-5 3-19 20 5c32-4 48 24 29 41 17 27-11 46-31 31C3 92-13 87-26 74Z" fill="url(#tree)"/><path d="M-29 31c-11 1-18 10-14 19" stroke="#cae7a6" stroke-width="6" stroke-linecap="round" opacity=".65"/></g>
     <g id="pine"><path d="M0 92V40" stroke="#9c8160" stroke-width="6"/><path d="m0-15-30 46h14l-29 36h25l-33 29H53L20 67h25L16 31h14L0-15Z" fill="#408e79"/><path d="m0-15-24 46H0V-15ZM0 40l-29 27H0V40ZM0 73l-35 23H0V73Z" fill="#5caa89"/></g>
+    <g id="pine-with-trunk"><path d="M0 90v22" stroke="#9c8160" stroke-width="8" stroke-linecap="round"/><use href="#pine"/></g>
     <g id="house">
       <ellipse cx="58" cy="107" rx="84" ry="13" fill="#44816b" opacity=".13"/>
       <path d="M9 30h99v75H9z" fill="#fff0ce"/><path d="M78 30h30v75H78z" fill="#efd9b0"/>
@@ -20,14 +21,14 @@
   </defs>
   <path d="M0 197C138 98 257 189 361 164c168-42 218-108 397-49 148 50 187 21 327 7 171-17 301 115 431 54 110-51 192-53 284-16v280H0V197Z" fill="#c7e3b2"/>
   <path d="M0 237c165-91 264-6 438-53 165-44 221 58 414 17 177-36 284-38 448 26 192 75 277-75 500-37v250H0V237Z" fill="url(#hill)"/>
-  <g opacity=".7"><use href="#pine" transform="translate(125 172) scale(.64)"/><use href="#pine" transform="translate(164 160) scale(.8)"/><use href="#pine" transform="translate(204 180) scale(.57)"/><use href="#pine" transform="translate(1460 188) scale(.75)"/><use href="#pine" transform="translate(1501 174) scale(.9)"/><use href="#pine" transform="translate(1547 192) scale(.66)"/></g>
+  <g opacity=".7"><use href="#pine-with-trunk" transform="translate(125 172) scale(.64)"/><use href="#pine-with-trunk" transform="translate(164 160) scale(.8)"/><use href="#pine-with-trunk" transform="translate(204 180) scale(.57)"/><use href="#pine" transform="translate(1460 188) scale(.75)"/><use href="#pine" transform="translate(1501 174) scale(.9)"/><use href="#pine" transform="translate(1547 192) scale(.66)"/></g>
   <path d="M0 281c133-55 250-18 398 4 151 23 244-56 421-31 240 34 386 13 553-9 185-23 308 1 428 47v148H0V281Z" fill="url(#grass)"/>
   <path d="M787 264c-21 20 104 58 109 93 3 19-54 52-90 83h149c42-31 69-74 33-104-26-22-162-51-176-72h-25Z" fill="#e8d7a7"/><path d="M815 274c27 18 145 44 164 67" stroke="#f6e9c4" stroke-width="5" stroke-linecap="round" opacity=".6"/>
   <use href="#house" transform="translate(470 170) scale(.92)"/><use href="#house" transform="translate(685 147) scale(1.18)"/><use href="#house" transform="translate(940 179) scale(.86)"/>
   <g transform="translate(1170 116)"><path d="m-30 167 12-105h42l13 105H-30Z" fill="#fff1cf"/><path d="M-27 68 3 28l29 40h-59Z" fill="#7796a2"/><path d="M-5 145h17v22H-5z" fill="#759bae"/><circle cx="3" cy="78" r="9" fill="#ad8b68"/><path d="M3 78-31 36m34 42 42-34M3 78l34 42M3 78l-42 34" stroke="#ecddbb" stroke-width="10" stroke-linecap="round"/><circle cx="3" cy="78" r="5" fill="#91785d"/></g>
   <use href="#fence" transform="translate(322 277) scale(.8)"/>
   <use href="#oak" transform="translate(634 192) scale(.88)"/><use href="#oak" transform="translate(1350 195) scale(1.15)"/>
-  <use href="#pine" transform="translate(19 251) scale(1.6)"/><use href="#pine" transform="translate(90 276) scale(1.28)"/><use href="#pine" transform="translate(157 298) scale(.9)"/>
+  <use href="#pine-with-trunk" transform="translate(19 251) scale(1.6)"/><use href="#pine-with-trunk" transform="translate(90 276) scale(1.28)"/><use href="#pine-with-trunk" transform="translate(157 298) scale(.9)"/>
   <use href="#pine" transform="translate(1677 260) scale(1.44)"/><use href="#pine" transform="translate(1758 236) scale(1.72)"/><use href="#pine" transform="translate(1606 286) scale(1.02)"/>
   <path d="M0 388c187-32 290 9 439-6 166-17 271-11 407 18 159 33 251-28 467-14 172 11 324-6 487-29v83H0v-52Z" fill="#43876e" opacity=".45"/>
   <g stroke="#dfedb0" stroke-width="3" stroke-linecap="round" opacity=".8"><path d="m247 362 3-11 4 9m92-29 4-10 3 9m248 45 3-11 5 10m421-42 3-12 4 11m322 33 4-12 3 10m109-48 4-11 4 10"/></g>
