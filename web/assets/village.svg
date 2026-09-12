@@ -15,7 +15,6 @@
       <path d="M29 50v22m-10-11h20m52-11v22m-8-11h16" stroke="#fff9e4" stroke-width="2"/>
       <circle cx="66" cy="83" r="2" fill="#fbe5a8"/>
       <path d="M14 76h30m34 0h24" stroke="#a78663" stroke-width="5" stroke-linecap="round"/>
-      <path d="M16 72c4-13 7-9 9-2 5-13 9-11 13 1m44 0c4-14 9-13 14-1" stroke="#699e69" stroke-width="5" stroke-linecap="round"/>
     </g>
     <g id="fence"><path d="M0 18h136M0 36h136" stroke="#f7ecd4" stroke-width="7"/><path d="M6 5v43M31 5v43M57 5v43M83 5v43M109 5v43M134 5v43" stroke="#fff8e7" stroke-width="8" stroke-linecap="round"/></g>
   </defs>
@@ -26,8 +25,8 @@
   <path d="M787 264c-21 20 104 58 109 93 3 19-54 52-90 83h149c42-31 69-74 33-104-26-22-162-51-176-72h-25Z" fill="#e8d7a7"/><path d="M815 274c27 18 145 44 164 67" stroke="#f6e9c4" stroke-width="5" stroke-linecap="round" opacity=".6"/>
   <use href="#house" transform="translate(470 170) scale(.92)"/><use href="#house" transform="translate(685 147) scale(1.18)"/><use href="#house" transform="translate(940 179) scale(.86)"/>
   <g transform="translate(1170 116)"><path d="m-30 167 12-105h42l13 105H-30Z" fill="#fff1cf"/><path d="M-27 68 3 28l29 40h-59Z" fill="#7796a2"/><path d="M-5 145h17v22H-5z" fill="#759bae"/><circle cx="3" cy="78" r="9" fill="#ad8b68"/><path d="M3 78-31 36m34 42 42-34M3 78l34 42M3 78l-42 34" stroke="#ecddbb" stroke-width="10" stroke-linecap="round"/><circle cx="3" cy="78" r="5" fill="#91785d"/></g>
-  <use href="#fence" transform="translate(322 277) scale(.8)"/><use href="#fence" transform="translate(1068 284) scale(.85)"/>
-  <use href="#oak" transform="translate(285 212) scale(1.06)"/><use href="#oak" transform="translate(405 234) scale(.7)"/><use href="#oak" transform="translate(634 192) scale(.88)"/><use href="#oak" transform="translate(1078 224) scale(.93)"/><use href="#oak" transform="translate(1350 195) scale(1.15)"/>
+  <use href="#fence" transform="translate(322 277) scale(.8)"/>
+  <use href="#oak" transform="translate(634 192) scale(.88)"/><use href="#oak" transform="translate(1350 195) scale(1.15)"/>
   <use href="#pine" transform="translate(19 251) scale(1.6)"/><use href="#pine" transform="translate(90 276) scale(1.28)"/><use href="#pine" transform="translate(157 298) scale(.9)"/>
   <use href="#pine" transform="translate(1677 260) scale(1.44)"/><use href="#pine" transform="translate(1758 236) scale(1.72)"/><use href="#pine" transform="translate(1606 286) scale(1.02)"/>
   <path d="M0 388c187-32 290 9 439-6 166-17 271-11 407 18 159 33 251-28 467-14 172 11 324-6 487-29v83H0v-52Z" fill="#43876e" opacity=".45"/>
