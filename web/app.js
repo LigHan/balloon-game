@@ -2,6 +2,7 @@
 const $ = (id) => document.getElementById(id);
 const dialogs = createDialogController();
 const skyScene = createSkyScene();
+const balloonMotion = createBalloonMotion();
 const money = (n) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n);
 const x = (n) => `×${Number(n).toFixed(2)}`;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -165,12 +166,14 @@ function renderCollection() {
 }
 function render() {
   if (!state) return;
+  const balloonBefore = balloonMotion.capture(state.round);
   $('balance').textContent = money(state.player.balance); $('player-name').textContent = state.player.name;
   document.querySelector('.avatar').textContent = [...state.player.name][0].toUpperCase();
   $('connection').hidden = connected; $('demo-banner').hidden = !state.devMode;
   $('topup').disabled = busy || !connected;
   skyScene.update(state.round, state.serverTime);
   renderField(); buildBets(); renderControls(); renderLeaderboard(); renderHistory(); renderCollection();
+  balloonMotion.play(balloonBefore);
 }
 function acceptState(data) {
   if (state && data.serverTime < state.serverTime) { connected = true; lastSuccess = Date.now(); return; }

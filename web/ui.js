@@ -1,5 +1,41 @@
 'use strict';
 
+function createBalloonMotion() {
+  const track = document.getElementById('balloon-track');
+  const artwork = track.querySelector('.balloon-image-stack');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let initialized = false, previousRound = null, previousDesign = null, animation = null;
+  function cancel() { animation?.cancel(); animation = null; }
+  function capture(round) {
+    const flying = round?.status === 'flying';
+    const launching = initialized && flying && round.id !== previousRound;
+    const design = document.body.dataset.design;
+    if (!flying || reducedMotion.matches || design !== previousDesign) cancel();
+    initialized = true; previousRound = round?.id; previousDesign = design;
+    return launching && !reducedMotion.matches && getComputedStyle(track).opacity === '1' ? artwork.getBoundingClientRect() : null;
+  }
+  function play(from) {
+    if (!from || !from.width || reducedMotion.matches) return;
+    cancel();
+    const to = artwork.getBoundingClientRect(), box = track.getBoundingClientRect();
+    if (!to.width) return;
+    const scale = from.width / to.width;
+    const originX = box.left + box.width / 2, originY = box.top + box.height / 2;
+    const dx = from.left + from.width / 2 - (originX + (to.left + to.width / 2 - originX) * scale);
+    const dy = from.top + from.height / 2 - (originY + (to.top + to.height / 2 - originY) * scale);
+    // Start at the artwork's previous screen coordinates after the field changes layout.
+    // Uniform scaling preserves the canopy and basket while the existing float continues.
+    animation = track.animate([
+      { transform: `translateX(-50%) translate(${dx}px, ${dy}px) scale(${scale})` },
+      { transform: 'translateX(-50%) translate(0, 0) scale(1)' },
+    ], { duration: 700, easing: 'cubic-bezier(.4, 0, .2, 1)' });
+    animation.onfinish = () => { animation = null; };
+  }
+  reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) cancel(); });
+  window.addEventListener('resize', cancel);
+  return { capture, play };
+}
+
 function createDialogController(root = document) {
   const pending = new Map();
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
