@@ -74,7 +74,7 @@ body[data-design='expanded'] .scene-outro { display: flex; height: 190px; margin
 body[data-design='expanded'] .footer { padding: 16px 20px; margin-bottom: 12px; border-radius: 14px; background: #f6fff1c9; color: #66897a; backdrop-filter: blur(12px); }
 
 /* A live flight becomes a viewport-sized cockpit. The scenery keeps moving. */
-html.has-flight { overflow: hidden; overscroll-behavior: none; }
+html.has-flight { overflow: hidden; scrollbar-gutter: auto; overscroll-behavior: none; }
 body.flight-view .world-scene { position: fixed; }
 body.flight-view .page-top, body.flight-view .view-settings, body.flight-view .demo-banner, body.flight-view .side-panel, body.flight-view .history-panel, body.flight-view .scene-outro, body.flight-view .footer { visibility: hidden; pointer-events: none; }
 body.flight-view .header { position: fixed; top: 10px; left: 24px; right: 24px; width: auto; max-width: none; margin: 0; min-height: 62px; height: 62px; border-radius: 16px; padding: 0 20px; z-index: 40; }

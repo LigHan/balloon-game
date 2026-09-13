@@ -47,6 +47,10 @@ async function run() {
   browser = await chromium.launch({ headless: true, ...(process.env.BALLOON_BROWSER_CHANNEL ? { channel: process.env.BALLOON_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
   const page = await context.newPage(), errors = [];
+  const sceneFillsViewport = () => page.locator('#world-scene').evaluate(e => {
+    const r = e.getBoundingClientRect();
+    return Math.abs(r.left) < .5 && Math.abs(r.right - innerWidth) < .5;
+  });
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(base);
   await page.waitForSelector('.bet-card');
@@ -207,6 +211,7 @@ async function run() {
     if (design === 'classic') check(Math.abs(fieldY - activeY) < 1, 'Classic field does not move when a round starts');
     else {
       check(await page.evaluate(() => document.body.classList.contains('flight-view') && document.documentElement.classList.contains('has-flight')), 'Expanded flight fills and locks the viewport');
+      check(await sceneFillsViewport(), 'Flight background reaches both viewport edges without an empty scrollbar gutter');
       const frames = await page.evaluate(() => window.sceneMotionDone);
       const launch = frames.findIndex(f => f.active), first = frames[launch], prior = frames[launch - 1];
       check(launch > 0 && Math.abs(first.y - prior.y) < 3 && Math.abs(first.landY - prior.landY) < 3, 'Clouds and village do not jump when the screen locks');
@@ -222,6 +227,7 @@ async function run() {
       await page.locator('#fair-open').click(); await page.waitForTimeout(270); await page.keyboard.press('Escape');
       await page.locator('#fair-dialog').waitFor({ state: 'hidden' });
       check(await page.evaluate(() => document.documentElement.classList.contains('has-flight') && !document.documentElement.classList.contains('has-dialog')), 'Closing a dialog keeps the flight scroll lock');
+      check(await sceneFillsViewport(), 'Closing a dialog during flight does not restore the empty right gutter');
     }
     await page.waitForFunction(() => !document.getElementById('cashout').disabled);
     if (design === 'expanded') {
@@ -264,6 +270,7 @@ async function run() {
     });
     await page.screenshot({ path: path.join(artifacts, `flight-${width}x${height}.png`) });
     check(metrics.fits && !metrics.overflow, `Cashout stays accessible in ${width}×${height}`);
+    check(await sceneFillsViewport(), `Flight background has no right strip in ${width}×${height}`);
     check(metrics.sky >= 100 && metrics.balloonFits, `Balloon stays inside the flight field in ${width}×${height}`);
   }
   await page.setViewportSize({ width: 375, height: 700 });
