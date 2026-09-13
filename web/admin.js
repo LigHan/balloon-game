@@ -7,7 +7,7 @@ const fields = [
   ['game_name', 'Название', 'text', 'Название игры в конфигурации'],
   ['game_type', 'Тип игры', 'text', 'До 80 символов'],
   ['points_per_line', 'Очков за уровень', 'number', 'Целое число от 0 до 10 000', 0, 10000, 1],
-  ['points_cashout_bonus', 'Очков за cashout', 'number', 'Целое число от 0 до 10 000', 0, 10000, 1]
+  ['points_cashout_bonus', 'Очков за полученный выигрыш', 'number', 'Целое число от 0 до 10 000', 0, 10000, 1]
 ];
 const economy = [
   ['stakes', 'Четыре ставки', 'array', 'Четыре целых числа 1–10 000, через запятую'],
@@ -37,7 +37,7 @@ function fill(data) {
   $('economy-fields').innerHTML = economy.map(f => fieldHtml(f, '', config)).join('');
   for (const theme of ['green','red']) $(theme + '-fields').innerHTML = themeFields.map(f => fieldHtml(f, theme + '.', config[theme])).join('');
   $('is_active').checked = config.is_active;
-  $('config-error').textContent = data.error ? `Ошибка внешнего файла. Продолжает действовать последняя корректная конфигурация: ${data.error}` : '';
+  $('config-error').textContent = data.error ? `Не удалось применить настройки. Сохранены предыдущие значения: ${data.error}` : '';
   $('model-summary').textContent = ['green','red'].map(theme => {
     const t = config[theme], survival = Math.pow(t.min_crash_multiplier / Math.max(2, t.min_crash_multiplier), t.alpha) * 100;
     return `${theme === 'green' ? 'Зелёный' : 'Красный'}: шанс достичь базового ×2 около ${survival.toFixed(1)}%, время до ×2 ${(Math.log(2) / t.multiplier_growth_rate).toFixed(1)} с, максимальная длительность ${(Math.log(t.max_multiplier) / t.multiplier_growth_rate).toFixed(1)} с.`;
@@ -48,7 +48,7 @@ function collect() {
   function read(field, prefix, target) {
     const [key, , type] = field, raw = $(prefix + key).value.trim();
     if (type === 'number') target[key] = Number(raw);
-    else if (type === 'array') { const parts = raw.split(','); if (parts.some(v => !v.trim() || !Number.isFinite(Number(v.trim())))) throw new Error(`Поле ${key}: укажи числа через запятую`); target[key] = parts.map(v => Number(v.trim())); }
+    else if (type === 'array') { const parts = raw.split(','); if (parts.some(v => !v.trim() || !Number.isFinite(Number(v.trim())))) throw new Error(`Поле «${field[1]}»: укажи числа через запятую`); target[key] = parts.map(v => Number(v.trim())); }
     else target[key] = raw;
   }
   [...fields, ...economy].forEach(f => read(f, '', data));

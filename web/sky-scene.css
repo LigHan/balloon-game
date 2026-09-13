@@ -97,7 +97,7 @@ body.flight-view .design-switch { padding: 3px; }
 body.flight-view .design-switch button { padding: 7px 11px; font-size: 12px; }
 body.flight-view .connection:not([hidden]) { position: fixed; top: 78px; left: 50%; transform: translateX(-50%); z-index: 45; max-width: min(580px, calc(100vw - 30px)); }
 @keyframes world-drift { from { translate: -25px 0; } to { translate: 35px 0; } }
-@keyframes cockpit-enter { from { opacity: .5; } to { opacity: 1; } }
+@keyframes cockpit-enter { from { box-shadow: 0 8px 30px #40719308; } to { box-shadow: 0 20px 70px #40719316; } }
 
 @media (max-height: 800px) and (min-width: 901px) {
   body.flight-view .bet-copy, body.flight-view .bet-grid { display: none; }

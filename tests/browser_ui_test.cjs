@@ -47,6 +47,30 @@ async function run() {
   browser = await chromium.launch({ headless: true, ...(process.env.BALLOON_BROWSER_CHANNEL ? { channel: process.env.BALLOON_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
   const page = await context.newPage(), errors = [];
+  const watchBalloonLaunch = () => page.evaluate(() => {
+    window.balloonMotionDone = new Promise(resolve => {
+      const frames = [], track = document.getElementById('balloon-track'), art = track.querySelector('.balloon-image-stack');
+      const begin = performance.now(); let launched = null;
+      function sample(t) {
+        const active = document.getElementById('sky').classList.contains('flying') && !document.getElementById('sky').classList.contains('crashed');
+        if (active && launched === null) launched = t;
+        const box = art.getBoundingClientRect();
+        frames.push({ t, active, x: box.x + box.width / 2, y: box.y + box.height / 2, width: box.width, height: box.height, scale: new DOMMatrix(getComputedStyle(track).transform).a, shadow: Number(getComputedStyle(track.querySelector('.balloon-shadow')).opacity) });
+        if ((launched === null && t - begin < 5000) || (launched !== null && t - launched < 850)) requestAnimationFrame(sample);
+        else resolve(frames);
+      }
+      sample(begin);
+    });
+  });
+  const checkBalloonLaunch = async label => {
+    const frames = await page.evaluate(() => window.balloonMotionDone);
+    const launch = frames.findIndex(f => f.active), first = frames[launch], prior = frames[launch - 1];
+    check(launch > 0 && Math.hypot(first.x - prior.x, first.y - prior.y) < 8 && Math.abs(first.width - prior.width) < 3, `${label}: balloon position and size remain continuous at takeoff`);
+    const moving = frames.filter(f => f.active && f.scale > 1.005);
+    check(moving.length >= 12 && moving.at(-1).t - moving[0].t > 350 && Math.abs(frames.at(-1).scale - 1) < .001, `${label}: balloon settles gradually into the flight layout`);
+    check(frames.every(f => Math.abs(f.width / f.height - 1) < .01), `${label}: balloon artwork keeps its proportions`);
+    check(first.shadow > .8 && frames.at(-1).shadow === 0, `${label}: ground shadow fades on takeoff`);
+  };
   const sceneFillsViewport = () => page.locator('#world-scene').evaluate(e => {
     const r = e.getBoundingClientRect();
     return Math.abs(r.left) < .5 && Math.abs(r.right - innerWidth) < .5;
@@ -208,6 +232,7 @@ async function run() {
       await route.continue();
     };
     await page.route('**/api/rounds', recordLaunch);
+    await watchBalloonLaunch();
     if (design === 'expanded') await page.evaluate(() => {
       window.sceneMotionDone = new Promise(resolve => {
         const frames = [], cloud = document.querySelector('.cloud-layer.near'), land = document.querySelector('.world-land');
@@ -228,6 +253,7 @@ async function run() {
       check(await page.locator('[data-design-choice="classic"]').isDisabled(), 'Design cannot move the field during launch preparation');
     } else await page.locator('#start').click();
     await page.waitForFunction(() => !document.getElementById('cashout').hidden);
+    await checkBalloonLaunch(design);
     await page.unroute('**/api/rounds', recordLaunch);
     const aligned = launches[0] && (Math.abs(launches[0].top - launches[0].inset) < 2 || (Math.abs(launches[0].y - launches[0].maxScroll) < 2 && launches[0].top > launches[0].inset));
     check(launches.length === 1 && !launches[0].locked && aligned, `${design}: one stake is sent only after the field is aligned within page scroll limits`);
@@ -301,8 +327,10 @@ async function run() {
     await route.continue();
   };
   await page.route('**/api/rounds', recordMobileLaunch);
+  await watchBalloonLaunch();
   await page.locator('#start').click();
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
+  await checkBalloonLaunch('mobile');
   await page.unroute('**/api/rounds', recordMobileLaunch);
   check(mobileLaunches.length === 1 && mobileBefore - mobileLaunches[0].scroll > 100 && Math.abs(mobileLaunches[0].top - 76) < 2, 'Mobile Play button scrolls up from below the field before starting');
   for (const [width, height] of [[375, 700], [320, 568], [844, 390], [1024, 700]]) {
@@ -352,6 +380,7 @@ async function run() {
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
   const reducedPosition = await page.locator('.cloud-layer.near').evaluate(e => getComputedStyle(e).transform);
   const reducedFlightScroll = await page.evaluate(() => scrollY);
+  check(await page.locator('#balloon-track').evaluate(e => !e.getAnimations().some(a => a.effect.getKeyframes().some(k => k.transform))), 'Reduced motion skips the balloon layout transition');
   await page.waitForTimeout(100);
   check(await page.locator('.cloud-layer.near').evaluate((e, position) => getComputedStyle(e).transform === position && getComputedStyle(e.querySelector('.world-cloud')).animationName === 'none', reducedPosition), 'Reduced motion disables scenery travel and drifting while retaining the flight view');
   await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 10000 });

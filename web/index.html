@@ -22,7 +22,7 @@
       </div>
     </div>
     <div id="connection" class="connection" role="status" hidden>Соединение потеряно. Восстанавливаем данные полёта…</div>
-    <div id="demo-banner" class="demo-banner" hidden>Демонстрационный режим · воспроизводимая случайность · <a href="/admin">сценарии в админке</a></div>
+    <div id="demo-banner" class="demo-banner" hidden>Демонстрационный режим · игра за бонусы</div>
     <div class="game-layout">
       <section class="flight-panel" aria-label="Игровое поле">
         <div class="flight-toolbar"><div class="theme-switch" role="group" aria-label="Тема полёта"><button data-theme-choice="green" class="theme-choice active" aria-pressed="true"><span class="theme-dot green"></span> Зелёный <span>9 уровней</span></button><button data-theme-choice="red" class="theme-choice" aria-pressed="false"><span class="theme-dot red"></span> Красный <span>12 уровней</span></button></div><div id="flight-design-slot"></div><span class="flight-tag" id="flight-tag">К полёту готов</span></div>
@@ -72,7 +72,7 @@
             </section>
           </div>
         </div>
-        <div class="flight-bottom"><span class="status-light"></span><span id="flight-status">Случайность рассчитывает сервер</span><button id="fair-open" class="text-button">Честность полёта <span>↗</span></button></div>
+        <div class="flight-bottom"><span class="status-light"></span><span id="flight-status">К полёту готов</span><button id="fair-open" class="text-button">Честность полёта <span>↗</span></button></div>
       </section>
       <aside class="side-panel" id="side-panel">
 
@@ -82,7 +82,7 @@
     </div>
     <section class="history-panel"><div class="small-heading"><h2>История полётов <span id="history-count"></span></h2><span class="history-live"><span class="status-light"></span> Все пилоты · в реальном времени</span></div><div id="history" class="history-strip"><p class="empty-state">Пока не было завершённых полётов. Твой может стать первым.</p></div></section>
     <div class="scene-outro"><span>Каждое большое путешествие начинается с маленького полёта</span></div>
-    <footer class="footer"><span>Учебный прототип · Чемпионат России 2026</span><div><a href="/admin">Управление игрой</a><a href="/presentation">О проекте</a><span>Бонусные баллы ≠ игровые очки</span></div></footer>
+    <footer class="footer"><span>Воздушный шар · Чемпионат России 2026</span><div><a href="/admin">Управление игрой</a><a href="/presentation">О проекте</a><span>Бонусные баллы ≠ игровые очки</span></div></footer>
   </main>
 
   <dialog id="rules-dialog" class="dialog rules-dialog" aria-labelledby="rules-title">
@@ -132,14 +132,14 @@
   <dialog id="fair-dialog" class="dialog fair-dialog" aria-labelledby="fair-title">
     <div class="dialog-header"><div class="dialog-heading"><span class="dialog-icon" aria-hidden="true">✓</span><div><div class="eyebrow">Честность полёта</div><h2 id="fair-title" tabindex="-1" autofocus>Проверь свой раунд</h2></div></div><button type="button" class="close-button" data-close aria-label="Закрыть окно"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
     <div class="dialog-body">
-      <p class="dialog-lead">До взлёта сервер фиксирует исход полёта: точку краха, бустер и марку. После завершения ты можешь проверить, что эти данные не изменились.</p>
-      <div class="fair-notice">SHA-256 подтверждает неизменность исхода. Это не аудит качества генератора случайности.</div>
-      <div class="field-label">Хеш перед взлётом</div>
+      <p class="dialog-lead">До взлёта сохраняются данные о полёте: точка завершения, бустер и марка. После приземления ты можешь проверить, что они остались прежними.</p>
+      <div class="fair-notice">Проверка сравнивает данные, сохранённые до и после полёта.</div>
+      <div class="field-label">Код раунда перед взлётом</div>
       <code class="hash-block" id="fair-hash">Будет опубликован после начала раунда</code>
       <div id="fair-proof-area" hidden>
-        <div class="field-label">Раскрытые данные раунда и секретный seed</div>
+        <div class="field-label">Данные завершённого полёта</div>
         <pre class="proof-block" id="fair-proof"></pre>
-        <button id="verify-proof" class="primary-button">Сверить SHA-256</button>
+        <button id="verify-proof" class="primary-button">Проверить данные</button>
         <p id="fair-verdict" role="status"></p>
       </div>
       <p id="fair-wait" class="muted">Исходные данные появятся после того, как шар лопнет.</p>
