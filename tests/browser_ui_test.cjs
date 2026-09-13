@@ -187,12 +187,32 @@ async function run() {
     await page.locator('#start').scrollIntoViewIfNeeded();
     const savedScroll = await page.evaluate(() => scrollY);
     const fieldY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
+    if (design === 'expanded') await page.evaluate(() => {
+      window.sceneMotionDone = new Promise(resolve => {
+        const frames = [], cloud = document.querySelector('.cloud-layer.near'), land = document.querySelector('.world-land');
+        const begin = performance.now(); let launched = null;
+        function sample(t) {
+          const active = document.body.classList.contains('flight-view');
+          if (active && launched === null) launched = t;
+          frames.push({ t, active, y: cloud.getBoundingClientRect().top, landY: land.getBoundingClientRect().top, offset: new DOMMatrix(getComputedStyle(cloud).transform).m42 });
+          if ((launched === null && t - begin < 5000) || (launched !== null && t - launched < 2600)) requestAnimationFrame(sample);
+          else resolve(frames);
+        }
+        sample(begin);
+      });
+    });
     await page.locator('#start').click();
     await page.waitForFunction(() => !document.getElementById('cashout').hidden);
     const activeY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
     if (design === 'classic') check(Math.abs(fieldY - activeY) < 1, 'Classic field does not move when a round starts');
     else {
       check(await page.evaluate(() => document.body.classList.contains('flight-view') && document.documentElement.classList.contains('has-flight')), 'Expanded flight fills and locks the viewport');
+      const frames = await page.evaluate(() => window.sceneMotionDone);
+      const launch = frames.findIndex(f => f.active), first = frames[launch], prior = frames[launch - 1];
+      check(launch > 0 && Math.abs(first.y - prior.y) < 3 && Math.abs(first.landY - prior.landY) < 3, 'Clouds and village do not jump when the screen locks');
+      const velocities = frames.slice(1).flatMap((f, i) => f.active && f.t > first.t + 1500 && f.t > frames[i].t ? [(f.offset - frames[i].offset) / (f.t - frames[i].t)] : []).sort((a, b) => a - b);
+      const slow = velocities[Math.floor(velocities.length * .1)], fast = velocities[Math.floor(velocities.length * .9)];
+      check(velocities.length >= 15 && slow > 0 && fast / slow < 1.6, `Scenery maintains a steady speed between server samples (ratio ${fast / slow})`);
       await page.waitForTimeout(300);
       const before = await page.evaluate(() => ({ scroll: scrollY, cloud: new DOMMatrix(getComputedStyle(document.querySelector('.cloud-layer.near')).transform).m42, balloon: parseFloat(document.getElementById('balloon-track').style.bottom) }));
       await page.mouse.move(600, 400); await page.mouse.wheel(0, 1000); await page.waitForTimeout(650);
@@ -273,7 +293,9 @@ async function run() {
   await api('/api/admin/scenario', { scenario: 'crash' });
   await page.locator('.bet-card[data-tier="0"]').click(); await page.locator('#start').click();
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
-  check(await page.locator('#world-scene').evaluate(e => parseFloat(e.style.getPropertyValue('--flight-travel')) === 0 && getComputedStyle(e.querySelector('.world-cloud')).animationName === 'none'), 'Reduced motion disables scenery travel and drifting while retaining the flight view');
+  const reducedPosition = await page.locator('.cloud-layer.near').evaluate(e => getComputedStyle(e).transform);
+  await page.waitForTimeout(100);
+  check(await page.locator('.cloud-layer.near').evaluate((e, position) => getComputedStyle(e).transform === position && getComputedStyle(e.querySelector('.world-cloud')).animationName === 'none', reducedPosition), 'Reduced motion disables scenery travel and drifting while retaining the flight view');
   await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 10000 });
   check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'A lost round also releases the flight lock');
   check(errors.length === 0, `No JavaScript errors: ${errors.join('; ')}`);

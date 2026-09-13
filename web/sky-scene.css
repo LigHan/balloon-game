@@ -1,16 +1,17 @@
 /* Design 2: one illustrated world behind the entire page. */
 .world-scene, .scene-outro, .sky-page-caption, #flight-design-slot { display: none; }
 body[data-design='expanded'] { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; position: relative; isolation: isolate; color: #244963; background: #c3e9f6; }
-body[data-design='expanded'] .world-scene { display: block; position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; --flight-travel: 0px; background: linear-gradient(180deg, #a7d8f3 0%, #c3e9f6 48%, #e5f3db 100%); }
+body[data-design='expanded'] .world-scene { display: block; position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: linear-gradient(180deg, #a7d8f3 0%, #c3e9f6 48%, #e5f3db 100%); }
 .world-scene:before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 22% 10%, #ffffffb8, transparent 58%); }
 .world-sun { position: absolute; width: 150px; height: 150px; border-radius: 50%; top: 6%; right: 14%; background: #fff5cf; box-shadow: 0 0 0 35px #fff8df20, 0 0 0 85px #fff9e51c, 0 0 100px 30px #fffae76b; }
-.world-birds { position: absolute; width: 140px; top: 18%; left: 8%; fill: none; stroke: #678f9b; stroke-width: 2; opacity: .35; transform: translateY(calc(var(--flight-travel) * .2)); }
+.world-birds { position: absolute; width: 140px; top: 18%; left: 8%; fill: none; stroke: #678f9b; stroke-width: 2; opacity: .35; }
 .cloud-layer { position: absolute; left: 0; right: 0; top: -160vh; height: 300vh; will-change: transform; }
-.cloud-layer.far { transform: translateY(calc(var(--flight-travel) * .38)); opacity: .67; }
-.cloud-layer.near { transform: translateY(calc(var(--flight-travel) * .8)); opacity: .93; }
+.cloud-layer.far { opacity: .67; }
+.cloud-layer.near { opacity: .93; }
 .world-cloud { position: absolute; width: var(--cloud-size, 430px); left: var(--cloud-x, 0); top: var(--cloud-y, 50%); animation: world-drift var(--cloud-time, 48s) ease-in-out infinite alternate; filter: drop-shadow(0 12px 24px #8fbed313); }
 .cloud-layer.far .world-cloud { filter: blur(1px); }
-.world-land { position: absolute; width: max(100%, 1100px); height: auto; aspect-ratio: 1800 / 440; left: 50%; bottom: -12px; transform: translate(-50%, calc(var(--flight-travel) * 1.12)); will-change: transform; }
+.world-land { position: absolute; width: max(100%, 1100px); height: auto; aspect-ratio: 1800 / 440; left: 50%; bottom: -12px; transform: translate3d(-50%, 0, 0); will-change: transform; }
+.world-scene[data-flying='true'] .world-birds, .world-scene[data-flying='true'] .world-sun { will-change: transform; }
 /* Override the HTML height so the SVG scales with its container without empty bands. */
 .world-land img { display: block; width: 100%; height: auto; }
 body[data-theme='red'][data-design='expanded'] .world-scene { background: linear-gradient(180deg, #edc7c4, #f8e0c9 56%, #e9eecb); }

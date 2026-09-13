@@ -168,7 +168,7 @@ function render() {
   document.querySelector('.avatar').textContent = [...state.player.name][0].toUpperCase();
   $('connection').hidden = connected; $('demo-banner').hidden = !state.devMode;
   $('topup').disabled = busy || !connected;
-  skyScene.update(state.round);
+  skyScene.update(state.round, state.serverTime);
   renderField(); buildBets(); renderControls(); renderLeaderboard(); renderHistory(); renderCollection();
 }
 function acceptState(data) {
