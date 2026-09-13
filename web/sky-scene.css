@@ -36,7 +36,7 @@ body[data-design='expanded'] .design-switch { background: #dcecf5ab; border-colo
 body[data-design='expanded'] .design-switch button { color: #7292a6; }
 body[data-design='expanded'] .design-switch button[aria-pressed='true'] { color: #355d76; background: #fffffff2; }
 body[data-design='expanded'] .demo-banner { color: #7192a3; background: #eff8fb96; border-color: #ffffff7a; }
-body[data-design='expanded'] .flight-panel { border: 1px solid #ffffffd9; background: #f3fbff47; box-shadow: 0 22px 60px #43769b12; border-radius: 27px; }
+body[data-design='expanded'] .flight-panel { --flight-top: 86px; scroll-margin-top: var(--flight-top); border: 1px solid #ffffffd9; background: #f3fbff47; box-shadow: 0 22px 60px #43769b12; border-radius: 27px; }
 body[data-design='expanded'] .flight-toolbar { background: #f7fcffb3; padding: 13px 20px; min-height: 71px; }
 body[data-design='expanded'] .theme-switch { background: #e7f1f5; }
 body[data-design='expanded'] .theme-choice { color: #486778; }
@@ -81,7 +81,7 @@ body.flight-view .header { position: fixed; top: 10px; left: 24px; right: 24px; 
 body.flight-view .brand img { width: 132px; height: 56px; }
 body.flight-view .header-nav a, body.flight-view .header-nav button { min-height: 60px; }
 body.flight-view .header-nav .nav-current:after { bottom: 0; }
-body.flight-view .flight-panel { position: fixed; inset: 86px 24px 18px; z-index: 30; display: flex; flex-direction: column; background: #f4fbff24; border-radius: 24px; box-shadow: 0 20px 70px #40719316; animation: cockpit-enter .25s ease-out both; }
+body.flight-view .flight-panel { position: fixed; inset: var(--flight-top) 24px 18px; z-index: 30; display: flex; flex-direction: column; background: #f4fbff24; border-radius: 24px; box-shadow: 0 20px 70px #40719316; animation: cockpit-enter .25s ease-out both; }
 body.flight-view .flight-toolbar { flex-shrink: 0; min-height: 58px; padding: 9px 17px; gap: 12px; }
 body.flight-view .flight-roster { flex-shrink: 0; height: 45px; }
 body.flight-view .flight-stage { flex: 1; min-height: 0; }
@@ -136,7 +136,7 @@ body.flight-view .connection:not([hidden]) { position: fixed; top: 78px; left: 5
   body[data-design='expanded'] .sky-page-caption { font-size: 12px; max-width: 235px; margin-top: 10px; }
   body[data-design='expanded'] .page-top { margin-bottom: 19px; }
   body[data-design='expanded'] .page-top .top-actions { margin-top: 5px; }
-  body[data-design='expanded'] .flight-panel { border-radius: 21px; }
+  body[data-design='expanded'] .flight-panel { --flight-top: 76px; border-radius: 21px; }
   body[data-design='expanded'] .flight-toolbar { padding: 11px 10px; }
   body[data-design='expanded'] .scene-outro { height: 155px; padding-top: 32px; }
   .scene-outro span { font-size: 11px; padding: 10px 15px; }
@@ -145,7 +145,7 @@ body.flight-view .connection:not([hidden]) { position: fixed; top: 78px; left: 5
   .cloud-layer { left: -170px; right: -170px; }
   body[data-design='expanded'] .footer { padding: 15px; gap: 8px; font-size: 10px; }
   body.flight-view .header { top: 8px; left: 10px; right: 10px; width: auto; margin: 0; min-height: 58px; height: 58px; }
-  body.flight-view .flight-panel { inset: 76px 10px 10px; border-radius: 19px; }
+  body.flight-view .flight-panel { inset: var(--flight-top) 10px 10px; border-radius: 19px; }
   body.flight-view .flight-toolbar { min-height: 50px; padding: 7px 8px; gap: 5px; }
   body.flight-view .theme-choice { padding: 8px 7px; font-size: 11px; }
   body.flight-view .theme-choice > span:last-child { display: none; }
@@ -172,11 +172,12 @@ body.flight-view .connection:not([hidden]) { position: fixed; top: 78px; left: 5
   body.flight-view .flight-bottom .text-button { font-size: 9px; }
 }
 @media (max-height: 600px) and (min-width: 581px) {
+  body[data-design='expanded'] .flight-panel { --flight-top: 62px; }
   body.flight-view .header { top: 6px; left: 12px; right: 12px; min-height: 48px; height: 48px; padding: 0 14px; }
   body.flight-view .brand img { width: 106px; height: 43px; }
   body.flight-view .header-nav { display: none; }
   body.flight-view .balance { padding: 6px 10px; }
-  body.flight-view .flight-panel { inset: 62px 12px 8px; border-radius: 17px; }
+  body.flight-view .flight-panel { inset: var(--flight-top) 12px 8px; border-radius: 17px; }
   body.flight-view .flight-toolbar { min-height: 44px; padding: 5px 12px; }
   body.flight-view .theme-choice { padding: 7px 10px; font-size: 11px; }
   body.flight-view .flight-roster { height: 30px; }

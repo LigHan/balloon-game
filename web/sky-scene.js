@@ -3,6 +3,7 @@
 function createSkyScene() {
   const scene = document.getElementById('world-scene');
   const layout = document.querySelector('.game-layout');
+  const panel = document.querySelector('.flight-panel');
   const choices = document.querySelector('.design-switch');
   const choiceHome = choices.parentElement;
   const choiceDock = document.getElementById('flight-design-slot');
@@ -17,6 +18,34 @@ function createSkyScene() {
   let locked = false, savedScroll = 0, previousHeight = '', frame = 0, previousTime = 0;
   let roundId = null, sampleStamp = null, sampleTime = 0, clockOrigin = 0, targetOrigin = 0;
   let progress = 0, progressRate = 0, travelRange = 0;
+  let launchScroll = null, returnRoundId = null;
+
+  async function prepareLaunch() {
+    if (locked) return;
+    launchScroll = scrollY;
+    const from = scrollY;
+    const inset = parseFloat(getComputedStyle(panel).scrollMarginTop) || 0;
+    const target = Math.max(0, Math.min(panel.getBoundingClientRect().top + from - inset, document.documentElement.scrollHeight - innerHeight));
+    const distance = target - from;
+    if (reducedMotion.matches || Math.abs(distance) < 2) {
+      window.scrollTo({ top: target, behavior: 'instant' });
+      return;
+    }
+    const duration = Math.min(700, Math.max(350, Math.abs(distance) * .45));
+    await new Promise(resolve => {
+      const began = performance.now();
+      function step(time) {
+        if (locked) { resolve(); return; }
+        const progress = reducedMotion.matches ? 1 : Math.min(1, (time - began) / duration);
+        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        window.scrollTo({ top: from + distance * eased, behavior: 'instant' });
+        if (progress < 1) requestAnimationFrame(step);
+        else resolve();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  function finishLaunch() { launchScroll = null; }
 
   function paint(travel) {
     for (const layer of layers) {
@@ -49,7 +78,7 @@ function createSkyScene() {
     locked = active;
     if (active) {
       const positions = layers.map(layer => layer.element.getBoundingClientRect().top);
-      savedScroll = scrollY;
+      finishLaunch();
       previousHeight = layout.style.minHeight;
       layout.style.minHeight = `${layout.getBoundingClientRect().height}px`;
       choiceDock.append(choices);
@@ -73,6 +102,11 @@ function createSkyScene() {
   }
   function update(round, serverTime) {
     const active = document.body.dataset.design === 'expanded' && round?.status === 'flying';
+    if (active && returnRoundId !== round.id) {
+      savedScroll = launchScroll ?? scrollY;
+      returnRoundId = round.id;
+    }
+    if (round?.status !== 'flying') returnRoundId = null;
     setLocked(!!active);
     scene.dataset.flying = String(!!active);
     if (!active) return;
@@ -90,5 +124,5 @@ function createSkyScene() {
     start();
   }
   reducedMotion.addEventListener('change', () => reducedMotion.matches ? stop() : start());
-  return { update };
+  return { update, prepareLaunch, finishLaunch };
 }

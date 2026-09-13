@@ -16,6 +16,7 @@ body { min-width: 0; }
 .live-rank-item strong { font-size: 12px; }
 .roster-loading { color: #9098a5; font-size: 12px; }
 .flight-stage { position: relative; }
+.flight-panel { scroll-margin-top: 24px; }
 .flight-world { position: absolute; inset: 0; }
 .bet-dock:empty { display: none; }
 .bet-copy > .muted { margin-top: 9px; }

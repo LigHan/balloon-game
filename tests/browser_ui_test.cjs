@@ -183,14 +183,31 @@ async function run() {
     return response.json();
   };
   await api('/api/admin/login', { password: 'browser-test-only' });
+  await page.locator('.bet-card[data-tier="0"]').click();
+  const balanceBeforeFailure = (await (await context.request.get(base + '/api/state')).json()).player.balance;
+  const failLaunch = route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Тест: запуск временно недоступен' }) });
+  await page.route('**/api/rounds', failLaunch);
+  await page.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight); document.getElementById('start').click(); });
+  await page.waitForFunction(() => document.getElementById('toast').textContent.includes('Тест: запуск'));
+  await page.waitForFunction(() => !document.getElementById('start').disabled);
+  check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight') && !document.querySelector('[data-design-choice="classic"]').disabled), 'Failed launch leaves scrolling and design selection available');
+  check((await (await context.request.get(base + '/api/state')).json()).player.balance === balanceBeforeFailure, 'Rejected launch does not deduct a stake');
+  await page.unroute('**/api/rounds', failLaunch);
   for (const [design, theme] of [['expanded', 'green'], ['classic', 'red']]) {
     await page.locator(`[data-design-choice="${design}"]`).click();
     await page.locator(`[data-theme-choice="${theme}"]`).click();
     await api('/api/admin/scenario', { scenario: 'cashout' });
     await page.locator('.bet-card[data-tier="0"]').click();
     await page.locator('#start').scrollIntoViewIfNeeded();
+    if (design === 'expanded') await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
     const savedScroll = await page.evaluate(() => scrollY);
     const fieldY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
+    const launches = [];
+    const recordLaunch = async route => {
+      launches.push(await page.evaluate(() => ({ y: scrollY, maxScroll: Math.max(0, document.documentElement.scrollHeight - innerHeight), top: document.querySelector('.flight-panel').getBoundingClientRect().top, inset: parseFloat(getComputedStyle(document.querySelector('.flight-panel')).scrollMarginTop), locked: document.documentElement.classList.contains('has-flight') })));
+      await route.continue();
+    };
+    await page.route('**/api/rounds', recordLaunch);
     if (design === 'expanded') await page.evaluate(() => {
       window.sceneMotionDone = new Promise(resolve => {
         const frames = [], cloud = document.querySelector('.cloud-layer.near'), land = document.querySelector('.world-land');
@@ -198,21 +215,31 @@ async function run() {
         function sample(t) {
           const active = document.body.classList.contains('flight-view');
           if (active && launched === null) launched = t;
-          frames.push({ t, active, y: cloud.getBoundingClientRect().top, landY: land.getBoundingClientRect().top, offset: new DOMMatrix(getComputedStyle(cloud).transform).m42 });
+          frames.push({ t, active, scroll: scrollY, y: cloud.getBoundingClientRect().top, landY: land.getBoundingClientRect().top, offset: new DOMMatrix(getComputedStyle(cloud).transform).m42 });
           if ((launched === null && t - begin < 5000) || (launched !== null && t - launched < 2600)) requestAnimationFrame(sample);
           else resolve(frames);
         }
         sample(begin);
       });
     });
-    await page.locator('#start').click();
+    if (design === 'expanded') {
+      // Invoke from below the field without Playwright scrolling the button into view first.
+      await page.evaluate(() => { const button = document.getElementById('start'); button.click(); button.click(); });
+      check(await page.locator('[data-design-choice="classic"]').isDisabled(), 'Design cannot move the field during launch preparation');
+    } else await page.locator('#start').click();
     await page.waitForFunction(() => !document.getElementById('cashout').hidden);
+    await page.unroute('**/api/rounds', recordLaunch);
+    const aligned = launches[0] && (Math.abs(launches[0].top - launches[0].inset) < 2 || (Math.abs(launches[0].y - launches[0].maxScroll) < 2 && launches[0].top > launches[0].inset));
+    check(launches.length === 1 && !launches[0].locked && aligned, `${design}: one stake is sent only after the field is aligned within page scroll limits`);
     const activeY = await page.locator('#sky').evaluate(e => e.getBoundingClientRect().top + scrollY);
     if (design === 'classic') check(Math.abs(fieldY - activeY) < 1, 'Classic field does not move when a round starts');
     else {
       check(await page.evaluate(() => document.body.classList.contains('flight-view') && document.documentElement.classList.contains('has-flight')), 'Expanded flight fills and locks the viewport');
       check(await sceneFillsViewport(), 'Flight background reaches both viewport edges without an empty scrollbar gutter');
       const frames = await page.evaluate(() => window.sceneMotionDone);
+      const scrolling = frames.filter(f => !f.active && f.scroll < savedScroll - 2 && f.scroll > launches[0].y + 2);
+      check(scrolling.length >= 8 && scrolling.at(-1).t - scrolling[0].t >= 200, 'Starting below the field scrolls through intermediate frames before locking');
+      check(scrolling.every((f, i) => i === 0 || f.scroll <= scrolling[i - 1].scroll), 'Launch scroll moves smoothly toward the field without reversing');
       const launch = frames.findIndex(f => f.active), first = frames[launch], prior = frames[launch - 1];
       check(launch > 0 && Math.abs(first.y - prior.y) < 3 && Math.abs(first.landY - prior.landY) < 3, 'Clouds and village do not jump when the screen locks');
       const velocities = frames.slice(1).flatMap((f, i) => f.active && f.t > first.t + 1500 && f.t > frames[i].t ? [(f.offset - frames[i].offset) / (f.t - frames[i].t)] : []).sort((a, b) => a - b);
@@ -244,7 +271,10 @@ async function run() {
     await page.locator('#cashout').click();
     await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 15000 });
     check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'The end of the round releases the flight lock');
-    if (design === 'expanded') check(Math.abs(await page.evaluate(() => scrollY) - savedScroll) < 2, 'After landing the original scroll position is restored');
+    if (design === 'expanded') {
+      const returnedScroll = await page.evaluate(() => scrollY);
+      check(Math.abs(returnedScroll - savedScroll) < 2, `After landing the original scroll position is restored (${savedScroll} -> ${returnedScroll})`);
+    }
     await page.waitForTimeout(270);
     check(await page.locator('#result-dialog').getAttribute('data-outcome') === 'win', `${design}: cashout reaches the result window`);
     await page.screenshot({ path: path.join(artifacts, `result-${design}.png`) });
@@ -260,8 +290,19 @@ async function run() {
   await page.locator('[data-design-choice="expanded"]').click();
   await page.setViewportSize({ width: 375, height: 700 });
   await api('/api/admin/scenario', { scenario: 'cashout' });
-  await page.locator('.bet-card[data-tier="0"]').click(); await page.locator('#start').click();
+  await page.locator('.bet-card[data-tier="0"]').click();
+  await page.locator('#start').scrollIntoViewIfNeeded();
+  const mobileBefore = await page.evaluate(() => scrollY);
+  const mobileLaunches = [];
+  const recordMobileLaunch = async route => {
+    mobileLaunches.push(await page.evaluate(() => ({ scroll: scrollY, top: document.querySelector('.flight-panel').getBoundingClientRect().top })));
+    await route.continue();
+  };
+  await page.route('**/api/rounds', recordMobileLaunch);
+  await page.locator('#start').click();
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
+  await page.unroute('**/api/rounds', recordMobileLaunch);
+  check(mobileLaunches.length === 1 && mobileBefore - mobileLaunches[0].scroll > 100 && Math.abs(mobileLaunches[0].top - 76) < 2, 'Mobile Play button scrolls up from below the field before starting');
   for (const [width, height] of [[375, 700], [320, 568], [844, 390], [1024, 700]]) {
     await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
     const metrics = await page.evaluate(() => {
@@ -298,7 +339,14 @@ async function run() {
   const closedImmediately = await page.evaluate(() => { const d = document.getElementById('rules-dialog'); d.querySelector('[data-close]').click(); return !d.open; });
   check(closedImmediately, 'Reduced motion closes immediately');
   await api('/api/admin/scenario', { scenario: 'crash' });
-  await page.locator('.bet-card[data-tier="0"]').click(); await page.locator('#start').click();
+  await page.locator('.bet-card[data-tier="0"]').click();
+  await page.locator('#start').scrollIntoViewIfNeeded();
+  const reducedScroll = await page.evaluate(() => {
+    const from = scrollY;
+    document.getElementById('start').click();
+    return { distance: from - scrollY, top: document.querySelector('.flight-panel').getBoundingClientRect().top };
+  });
+  check(reducedScroll.distance > 100 && Math.abs(reducedScroll.top - 76) < 2, 'Reduced motion aligns the field immediately without scrolling animation');
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
   const reducedPosition = await page.locator('.cloud-layer.near').evaluate(e => getComputedStyle(e).transform);
   await page.waitForTimeout(100);
