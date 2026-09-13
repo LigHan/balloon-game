@@ -268,12 +268,13 @@ async function run() {
       const roundAfter = await (await context.request.get(base + '/api/state')).json();
       check(roundBefore.round.id === roundAfter.round.id && roundBefore.player.balance === roundAfter.player.balance, 'Switching design preserves the active round and balance');
     }
+    const flightScroll = await page.evaluate(() => scrollY);
     await page.locator('#cashout').click();
     await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 15000 });
     check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'The end of the round releases the flight lock');
     if (design === 'expanded') {
-      const returnedScroll = await page.evaluate(() => scrollY);
-      check(Math.abs(returnedScroll - savedScroll) < 2, `After landing the original scroll position is restored (${savedScroll} -> ${returnedScroll})`);
+      const landedScroll = await page.evaluate(() => scrollY);
+      check(Math.abs(landedScroll - flightScroll) < 2 && Math.abs(landedScroll - savedScroll) > 100, `Landing keeps the flight position instead of returning below the field (${flightScroll} -> ${landedScroll})`);
     }
     await page.waitForTimeout(270);
     check(await page.locator('#result-dialog').getAttribute('data-outcome') === 'win', `${design}: cashout reaches the result window`);
@@ -284,6 +285,7 @@ async function run() {
     check(await page.evaluate(() => document.getElementById('result-dialog').open && document.documentElement.classList.contains('has-dialog')), 'Closing a nested dialog preserves the result and scroll lock');
     await page.locator('#play-again').click();
     await page.locator('#result-dialog').waitFor({ state: 'hidden' });
+    if (design === 'expanded') check(Math.abs(await page.evaluate(() => scrollY) - flightScroll) < 2, 'Closing the result keeps the page at its flight position');
   }
 
   // Short and narrow screens retain the game and cashout inside the locked viewport.
@@ -349,10 +351,12 @@ async function run() {
   check(reducedScroll.distance > 100 && Math.abs(reducedScroll.top - 76) < 2, 'Reduced motion aligns the field immediately without scrolling animation');
   await page.waitForFunction(() => document.body.classList.contains('flight-view'));
   const reducedPosition = await page.locator('.cloud-layer.near').evaluate(e => getComputedStyle(e).transform);
+  const reducedFlightScroll = await page.evaluate(() => scrollY);
   await page.waitForTimeout(100);
   check(await page.locator('.cloud-layer.near').evaluate((e, position) => getComputedStyle(e).transform === position && getComputedStyle(e.querySelector('.world-cloud')).animationName === 'none', reducedPosition), 'Reduced motion disables scenery travel and drifting while retaining the flight view');
   await page.locator('#result-dialog').waitFor({ state: 'visible', timeout: 10000 });
   check(await page.evaluate(() => !document.documentElement.classList.contains('has-flight')), 'A lost round also releases the flight lock');
+  check(Math.abs(await page.evaluate(() => scrollY) - reducedFlightScroll) < 2, 'A lost round also keeps the page at its flight position');
   check(errors.length === 0, `No JavaScript errors: ${errors.join('; ')}`);
   console.log(`PASS: ${checks} browser checks; Chrome ${browser.version()}; screenshots in ${artifacts}`);
 }

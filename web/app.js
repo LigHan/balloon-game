@@ -256,22 +256,18 @@ function showRules() {
   openDialog('rules-dialog');
 }
 
-$('start').addEventListener('click', async () => {
-  if (busy || selected === null || activeRound()) return;
-  try {
-    await act(async () => {
-      let pending;
-      try { pending = JSON.parse(sessionStorage.getItem('balloon.pendingStart')); } catch { /* Start a fresh request. */ }
-      if (!pending || pending.theme !== theme || pending.tier !== selected) pending = { theme, tier: selected, requestId: createRequestId() };
-      sessionStorage.setItem('balloon.pendingStart', JSON.stringify(pending));
-      document.querySelector(`.bet-card[data-tier="${selected}"]`)?.classList.add('launching'); sound();
-      // Reach the field before sending the stake, so scrolling consumes no flight time.
-      await skyScene.prepareLaunch();
-      const round = await api('/api/rounds', pending);
-      sessionStorage.removeItem('balloon.pendingStart'); localStorage.setItem(`balloon.commit.${round.id}`, round.commitment); snapshots.set(round.id, round.commitment);
-    });
-  } finally { skyScene.finishLaunch(); }
-});
+$('start').addEventListener('click', () => act(async () => {
+  if (selected === null || activeRound()) return;
+  let pending;
+  try { pending = JSON.parse(sessionStorage.getItem('balloon.pendingStart')); } catch { /* Start a fresh request. */ }
+  if (!pending || pending.theme !== theme || pending.tier !== selected) pending = { theme, tier: selected, requestId: createRequestId() };
+  sessionStorage.setItem('balloon.pendingStart', JSON.stringify(pending));
+  document.querySelector(`.bet-card[data-tier="${selected}"]`)?.classList.add('launching'); sound();
+  // Reach the field before sending the stake, so scrolling consumes no flight time.
+  await skyScene.prepareLaunch();
+  const round = await api('/api/rounds', pending);
+  sessionStorage.removeItem('balloon.pendingStart'); localStorage.setItem(`balloon.commit.${round.id}`, round.commitment); snapshots.set(round.id, round.commitment);
+}));
 $('cashout').addEventListener('click', () => act(async () => { if (!activeRound()) return; await api(`/api/rounds/${state.round.id}/cashout`, {}); sound('cashout'); $('onboarding').hidden = true; }));
 document.querySelectorAll('[data-theme-choice]').forEach((button) => button.addEventListener('click', () => { if (activeRound() || busy) return; theme = button.dataset.themeChoice; localStorage.setItem('balloon.theme', theme); atmosphere(); sound(); render(); }));
 $('topup').addEventListener('click', () => act(async () => { await api('/api/topup', {}); toast('Демобаланс пополнен на 1 000 бонусов'); }));

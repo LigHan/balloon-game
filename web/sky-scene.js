@@ -15,14 +15,12 @@ function createSkyScene() {
     ['.world-birds', .2, '0'],
     ['.world-sun', .08, '0'],
   ].map(([selector, speed, x]) => ({ element: scene.querySelector(selector), speed, x, offset: 0 }));
-  let locked = false, savedScroll = 0, previousHeight = '', frame = 0, previousTime = 0;
+  let locked = false, previousHeight = '', frame = 0, previousTime = 0;
   let roundId = null, sampleStamp = null, sampleTime = 0, clockOrigin = 0, targetOrigin = 0;
   let progress = 0, progressRate = 0, travelRange = 0;
-  let launchScroll = null, returnRoundId = null;
 
   async function prepareLaunch() {
     if (locked) return;
-    launchScroll = scrollY;
     const from = scrollY;
     const inset = parseFloat(getComputedStyle(panel).scrollMarginTop) || 0;
     const target = Math.max(0, Math.min(panel.getBoundingClientRect().top + from - inset, document.documentElement.scrollHeight - innerHeight));
@@ -45,7 +43,6 @@ function createSkyScene() {
       requestAnimationFrame(step);
     });
   }
-  function finishLaunch() { launchScroll = null; }
 
   function paint(travel) {
     for (const layer of layers) {
@@ -78,7 +75,6 @@ function createSkyScene() {
     locked = active;
     if (active) {
       const positions = layers.map(layer => layer.element.getBoundingClientRect().top);
-      finishLaunch();
       previousHeight = layout.style.minHeight;
       layout.style.minHeight = `${layout.getBoundingClientRect().height}px`;
       choiceDock.append(choices);
@@ -90,11 +86,13 @@ function createSkyScene() {
       paint(0);
     } else {
       stop();
+      const currentScroll = scrollY;
       choiceHome.append(choices);
       document.body.classList.remove('flight-view');
       document.documentElement.classList.remove('has-flight');
       layout.style.minHeight = previousHeight;
-      window.scrollTo({ top: savedScroll, behavior: 'instant' });
+      // Keep the current view while normal page layout and scrolling are restored.
+      window.scrollTo({ top: currentScroll, behavior: 'instant' });
       layers.forEach(layer => { layer.offset = 0; });
       paint(0);
       roundId = null; sampleStamp = null; progress = 0;
@@ -102,11 +100,6 @@ function createSkyScene() {
   }
   function update(round, serverTime) {
     const active = document.body.dataset.design === 'expanded' && round?.status === 'flying';
-    if (active && returnRoundId !== round.id) {
-      savedScroll = launchScroll ?? scrollY;
-      returnRoundId = round.id;
-    }
-    if (round?.status !== 'flying') returnRoundId = null;
     setLocked(!!active);
     scene.dataset.flying = String(!!active);
     if (!active) return;
@@ -124,5 +117,5 @@ function createSkyScene() {
     start();
   }
   reducedMotion.addEventListener('change', () => reducedMotion.matches ? stop() : start());
-  return { update, prepareLaunch, finishLaunch };
+  return { update, prepareLaunch };
 }
